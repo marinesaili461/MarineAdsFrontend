@@ -1,81 +1,158 @@
-import React, { useContext } from "react";
+// src/Pages/Referral.jsx
+import React, { useContext, useEffect } from "react";
 import { ReferralContext } from "../Context/ReferralContext";
+import { AuthContext } from "../Context/AuthContext";
+import TopBar from "../Components/TopBar";
+import BottomNav from "../Components/BottomNav";
 
 const Referral = () => {
-  const { referral, loading } = useContext(ReferralContext);
+  const { user } = useContext(AuthContext);
+  const { stats, loading, fetchStats } = useContext(ReferralContext);
 
-  if (loading) return <p>Loading referral data...</p>;
+  useEffect(() => { fetchStats(); }, []);
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(referral.referralLink);
+  const referralLink = `${window.location.origin}/register?ref=${user?.referralCode || user?._id}`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(referralLink);
     alert("Referral link copied!");
   };
 
-  return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Referral Program</h2>
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: "Join MarineCash", text: "Earn money doing simple tasks!", url: referralLink });
+    } else handleCopy();
+  };
 
-      {/* Referral link */}
-      <div className="bg-gray-100 p-4 rounded-xl mb-6">
-        <p className="mb-2">Your referral link:</p>
-        <div className="flex items-center">
+  const tiers = stats?.tiers || [
+    { name: "Starter",  minReferrals: 10,  color: "#94a3b8" },
+    { name: "Bronze",   minReferrals: 20,  color: "#cd7f32" },
+    { name: "Silver",   minReferrals: 50,  color: "#94a3b8" },
+    { name: "Gold",     minReferrals: 100, color: "#3b82f6" },
+    { name: "Platinum", minReferrals: 200, color: "#f97316" },
+  ];
+
+  return (
+    <div className="bg-gray-100 min-h-screen pb-24">
+      <TopBar />
+
+      {/* Header */}
+      <div className="bg-orange-400 px-4 pb-6 pt-2 text-white">
+        <h1 className="text-xl font-extrabold">Referral Program</h1>
+        <p className="text-sm text-white/80 mt-1">Invite friends and earn commission on every task they complete</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 mx-3 -mt-4">
+        {[
+          { label: "Total Referrals", value: stats?.totalMembers || 0, icon: "fa-users", color: "bg-purple-500" },
+          { label: "Total Earned",    value: `$${Number(stats?.totalEarned || 0).toFixed(2)}`, icon: "fa-dollar-sign", color: "bg-green-500" },
+          { label: "Level",           value: stats?.level || 0, icon: "fa-star", color: "bg-orange-500" },
+        ].map(({ label, value, icon, color }) => (
+          <div key={label} className="bg-white rounded-xl shadow p-3 flex flex-col items-center text-center">
+            <div className={`${color} rounded-full w-9 h-9 flex items-center justify-center mb-2`}>
+              <i className={`fas ${icon} text-white text-sm`}></i>
+            </div>
+            <p className="font-extrabold text-gray-800 text-lg">{value}</p>
+            <p className="text-[10px] text-gray-400 font-medium">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Referral Link */}
+      <div className="bg-white shadow rounded-xl mx-3 mt-4 p-4">
+        <p className="font-semibold text-gray-700 mb-2">🔗 Your Referral Link</p>
+        <div className="flex gap-2">
           <input
-            type="text"
-            value={referral.referralLink}
-            readOnly
-            className="flex-1 p-2 border rounded-l-xl"
+            readOnly value={referralLink}
+            className="flex-1 border-2 border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-500 outline-none bg-gray-50"
           />
           <button
-            onClick={copyToClipboard}
-            className="bg-blue-500 text-white px-4 py-2 rounded-r-xl"
+            onClick={handleCopy}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition"
           >
-            Copy
+            <i className="fas fa-copy"></i>
           </button>
         </div>
+        <button
+          onClick={handleShare}
+          className="w-full mt-3 bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2"
+        >
+          <i className="fas fa-share-alt"></i> Share Link
+        </button>
       </div>
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-4 shadow rounded-xl text-center">
-          <p className="text-lg font-bold">${referral.totalEarned.toFixed(2)}</p>
-          <p className="text-sm text-gray-500">Earned</p>
-        </div>
-        <div className="p-4 shadow rounded-xl text-center">
-          <p className="text-lg font-bold">{referral.totalMembers}</p>
-          <p className="text-sm text-gray-500">Members</p>
-        </div>
-        <div className="p-4 shadow rounded-xl text-center">
-          <p className="text-lg font-bold">Lv {referral.level}</p>
-          <p className="text-sm text-gray-500">Level</p>
+      {/* How it works */}
+      <div className="bg-white shadow rounded-xl mx-3 mt-4 p-4">
+        <p className="font-semibold text-gray-700 mb-3">💡 How It Works</p>
+        {[
+          { step: "1", text: "Share your referral link with friends" },
+          { step: "2", text: "Friend registers using your link" },
+          { step: "3", text: "They complete 2+ tasks to activate" },
+          { step: "4", text: "You earn 10% of their task earnings" },
+        ].map(({ step, text }) => (
+          <div key={step} className="flex items-center gap-3 mb-3 last:mb-0">
+            <div className="bg-orange-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold text-xs shrink-0">
+              {step}
+            </div>
+            <p className="text-sm text-gray-600">{text}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Badge Tiers */}
+      <div className="bg-white shadow rounded-xl mx-3 mt-4 p-4">
+        <p className="font-semibold text-gray-700 mb-3">🏆 Badge Tiers</p>
+        <div className="space-y-2">
+          {tiers.map((tier) => {
+            const current = stats?.totalMembers || 0;
+            const reached = current >= tier.minReferrals;
+            return (
+              <div key={tier.name} className={`flex items-center justify-between p-3 rounded-xl border-2 ${reached ? "border-green-400 bg-green-50" : "border-gray-100 bg-gray-50"}`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full" style={{ backgroundColor: tier.color }}></div>
+                  <p className="text-sm font-semibold text-gray-700">{tier.name}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-400">{tier.minReferrals}+ referrals</p>
+                  {reached && <i className="fas fa-check-circle text-green-500 text-sm"></i>}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Badge */}
-      <div className="flex justify-center mb-6">
-        <img
-          src={referral.badge}
-          alt="Referral Badge"
-          className="w-20 h-20 object-contain"
-        />
-      </div>
-
-      {/* Members List */}
-      <h3 className="text-lg font-semibold mb-2">Your Referrals</h3>
-      <ul className="border rounded divide-y">
-        {referral.members.length > 0 ? (
-          referral.members.map((m, i) => (
-            <li key={i} className="p-3 flex justify-between">
-              <span>{m.name || "Unnamed"}</span>
-              <span className="text-gray-500 text-sm">Lv {m.level || 1}</span>
-              <span className="text-gray-400 text-sm">
-                {new Date(m.joined).toLocaleDateString()}
-              </span>
-            </li>
-          ))
+      {/* Referral List */}
+      <div className="bg-white shadow rounded-xl mx-3 mt-4 p-4">
+        <p className="font-semibold text-gray-700 mb-3">👥 Your Referrals</p>
+        {loading ? (
+          <p className="text-sm text-center text-gray-400 animate-pulse">Loading...</p>
+        ) : stats?.referrals?.length > 0 ? (
+          <div className="space-y-2">
+            {stats.referrals.map((r, i) => (
+              <div key={i} className="flex items-center justify-between border-b pb-2 last:border-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <i className="fas fa-user text-orange-400 text-xs"></i>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">{r.referee?.fullName || "User"}</p>
+                    <p className="text-xs text-gray-400">{r.tasksCompletedByReferee} tasks completed</p>
+                  </div>
+                </div>
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${r.status === "active" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"}`}>
+                  {r.status === "active" ? "Active" : "Pending"}
+                </span>
+              </div>
+            ))}
+          </div>
         ) : (
-          <li className="p-3 text-gray-500">No referrals yet.</li>
+          <p className="text-sm text-center text-gray-400 py-4">No referrals yet. Start sharing!</p>
         )}
-      </ul>
+      </div>
+
+      <BottomNav />
     </div>
   );
 };
