@@ -1,25 +1,23 @@
 // src/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-
-// Context providers
 import { AuthProvider } from "./Context/AuthContext";
 import { WalletProvider } from "./Context/WalletContext";
 import { ReferralProvider } from "./Context/ReferralContext";
 import { RewardCodeProvider } from "./Context/RewardCodeContext";
-import { ChatProvider } from "./Context/ChatContext"; // ✅ Chat context
-
-// Pages
+import { ChatProvider } from "./Context/ChatContext";
+import ProtectedRoute from "./Components/ProtectedRoute";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
+import Home from "./Pages/Home";
+import Earn from "./Pages/Earn";
 import Wallet from "./Pages/Wallet";
-import VerifyEmail from "./Pages/VerifyEmail";
+import Profile from "./Pages/Profile";
+import ChatPage from "./Pages/ChatPage";
 import Referral from "./Pages/Referral";
 import Reward from "./Pages/Reward";
-import ChatPage from "./Pages/ChatPage"; // ✅ Chat page
-
-// Components
-import NavBar from "./Components/NavBar";
+import VerifyEmail from "./Pages/VerifyEmail";
+import NotFound from "./Pages/NotFound";
 
 const App = () => {
   return (
@@ -27,26 +25,21 @@ const App = () => {
       <WalletProvider>
         <ReferralProvider>
           <RewardCodeProvider>
-            <ChatProvider> {/* ✅ Wrap chat context here */}
+            <ChatProvider>
               <Router>
-                <NavBar />
-
                 <Routes>
-                  {/* Default redirect */}
                   <Route path="/" element={<Navigate to="/login" />} />
-
-                  {/* Auth pages */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-
-                  {/* Verification */}
                   <Route path="/verify-email" element={<VerifyEmail />} />
-
-                  {/* Protected pages */}
-                  <Route path="/wallet" element={<Wallet />} />
-                  <Route path="/referral" element={<Referral />} />
-                  <Route path="/reward" element={<Reward />} />
-                  <Route path="/chat" element={<ChatPage />} /> {/* ✅ Chat route */}
+                  <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                  <Route path="/earn" element={<ProtectedRoute><Earn /></ProtectedRoute>} />
+                  <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                  <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
+                  <Route path="/reward" element={<ProtectedRoute><Reward /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </Router>
             </ChatProvider>
