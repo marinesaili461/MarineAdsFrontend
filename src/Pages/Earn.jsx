@@ -1,116 +1,55 @@
-import React, { useEffect, useState } from "react";
-import { getWallet, withdrawAmount } from "../api/walletApi";
-import "../Styles/Earn.css";
+// src/Pages/Earn.jsx
+import React from "react";
+import { Link } from "react-router-dom";
+import TopBar from "../Components/TopBar";
+import BottomNav from "../Components/BottomNav";
 
-const Wallet = () => {
-  const [wallet, setWallet] = useState({
-    balance: 0,
-    earnedToday: 0,
-    withdrawals: [],
-  });
+const earnItems = [
+  { icon: "fa-camera",        color: "text-orange-400", label: "Watch & Earn",  desc: "Earn by watching videos",         to: "/offerwalls" },
+  { icon: "fa-google fab",    color: "text-green-500",  label: "Sign Ups",      desc: "Earn from app & site registration", to: "/offerwalls" },
+  { icon: "fa-arrow-down",    color: "text-orange-500", label: "Install Apps",  desc: "Earn by installing apps",          to: "/offerwalls" },
+  { icon: "fa-instagram fab", color: "text-pink-500",   label: "Social Media",  desc: "Follow, like and share to earn",   to: "/offerwalls" },
+  { icon: "fa-gamepad",       color: "text-green-500",  label: "Play Games",    desc: "Earn by gaming",                   to: "/offerwalls" },
+  { icon: "fa-clipboard-list",color: "text-orange-500", label: "Surveys",       desc: "Earn by completing surveys",       to: "/offerwalls" },
+  { icon: "fa-tasks",         color: "text-orange-600", label: "Task Status",   desc: "Check your submissions",           to: "/task-status" },
+  { icon: "fa-handshake",     color: "text-green-500",  label: "Partners",      desc: "Special offers and deals",         to: "/offerwalls" },
+  { icon: "fa-gift",          color: "text-orange-500", label: "Redeem Code",   desc: "Redeem your code here",            to: "/reward" },
+];
 
-  const [withdrawValue, setWithdrawValue] = useState("");
-  const [message, setMessage] = useState("");
-
-  // Fetch wallet on mount
-  useEffect(() => {
-    fetchWallet();
-  }, []);
-
-  const fetchWallet = async () => {
-    try {
-      const data = await getWallet();
-      setWallet(data);
-    } catch (err) {
-      console.error("Error fetching wallet:", err);
-    }
-  };
-
-  const handleWithdraw = async () => {
-    if (!withdrawValue || Number(withdrawValue) <= 0) {
-      setMessage("Enter a valid amount to withdraw.");
-      return;
-    }
-
-    try {
-      const res = await withdrawAmount(withdrawValue);
-      setMessage(res.message);
-      setWithdrawValue("");
-      fetchWallet(); // refresh wallet after withdrawal
-    } catch (err) {
-      setMessage(err.response?.data?.message || "Withdrawal failed.");
-    }
-  };
-
+export default function Earn() {
   return (
-    <div className="wallet-container">
-      <h1>My Wallet</h1>
+    <div className="bg-gray-100 min-h-screen pb-24">
+      <TopBar />
 
-      {/* Wallet summary */}
-      <div className="wallet-summary">
-        <div className="wallet-box">
-          <h3>Total Balance</h3>
-          <p>${wallet.balance.toFixed(2)}</p>
-        </div>
-        <div className="wallet-box">
-          <h3>Earned Today</h3>
-          <p>${wallet.earnedToday.toFixed(2)}</p>
-        </div>
-      </div>
+      {/* Guidelines */}
+      <section className="bg-white mx-2 mt-4 p-4 rounded-xl shadow border-l-4 border-orange-400">
+        <h2 className="text-base font-bold text-orange-500 mb-2">
+          <i className="fas fa-info-circle mr-2"></i>Important Guidelines
+        </h2>
+        <ul className="space-y-1 list-disc pl-5 text-sm text-gray-600">
+          <li>Proofs reviewed within <span className="font-semibold text-green-600">48 hours</span></li>
+          <li>One account per person. Multiple accounts will be <span className="text-red-500">banned</span></li>
+          <li>Approval rate below <span className="text-red-500">30%</span> may result in suspension</li>
+          <li>Fake or unclear proofs will lead to <span className="text-red-500">rejection</span></li>
+        </ul>
+      </section>
 
-      {/* Actions */}
-      <div className="wallet-actions">
-        <input
-          type="number"
-          placeholder="Amount to withdraw"
-          value={withdrawValue}
-          onChange={(e) => setWithdrawValue(e.target.value)}
-        />
-        <button onClick={handleWithdraw}>Withdraw</button>
-        <button onClick={() => setMessage("Deposit feature coming soon!")}>Deposit</button>
-      </div>
+      {/* Earn Grid */}
+      <main className="grid grid-cols-3 gap-4 px-4 py-4 m-2">
+        {earnItems.map((item) => (
+          <Link
+            key={item.label}
+            to={item.to}
+            className="bg-white shadow rounded-xl p-3 flex flex-col items-center text-center hover:scale-105 transition-all"
+          >
+            <i className={`fas ${item.icon} ${item.color} text-4xl`}></i>
+            <p className="text-xs font-semibold mt-2 text-gray-700">{item.label}</p>
+            <span className="text-[10px] text-gray-400 mt-1">{item.desc}</span>
+          </Link>
+        ))}
+      </main>
 
-      {/* Messages */}
-      {message && <p className="wallet-message">{message}</p>}
-
-      {/* Withdrawal history */}
-      <h2>Withdrawal History</h2>
-      <table className="wallet-history">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Amount (USD)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {wallet.withdrawals.length > 0 ? (
-            wallet.withdrawals.map((w, idx) => (
-              <tr key={idx}>
-                <td>{new Date(w.date).toLocaleString()}</td>
-                <td>${w.amount.toFixed(2)}</td>
-                <td
-                  className={`status ${
-                    w.status === "Approved"
-                      ? "approved"
-                      : w.status === "Rejected"
-                      ? "rejected"
-                      : "pending"
-                  }`}
-                >
-                  {w.status}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="3">No withdrawals yet.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <BottomNav />
     </div>
   );
-};
-
-export default Wallet;
+}
