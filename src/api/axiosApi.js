@@ -1,17 +1,39 @@
-// src/api/axiosApi.js
 import axios from "axios";
 
-const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // example: http://localhost:5000/api
+const api = axios.create({
+  baseURL: "https://marinecashbackend.onrender.com/api",
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+  },
 });
 
-// Add token automatically if it exists
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Auto-attach token on every request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Auto-logout on 401
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.code === "ECONNABORTED" || !error.response) {
+      console.warn("Network error or timeout:", error.message);
+    } else if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    } else {
+      console.error("API Error:", error?.response?.data || error.message);
+    }
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
-export default axiosInstance;
+export default api;
