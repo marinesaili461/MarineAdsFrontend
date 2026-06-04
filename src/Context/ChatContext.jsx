@@ -1,26 +1,24 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import API from "../api/axios";
 import { socket } from "../utils/socket";
 import { AuthContext } from "./AuthContext";
-import { getMessages } from "../api/index";
 
 export const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
   const { user, token } = useContext(AuthContext);
-  const [messages, setMessages]     = useState([]);
+  const [messages, setMessages]       = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading]         = useState(true);
 
-  // Load history
   useEffect(() => {
     if (!token) { setLoading(false); return; }
-    getMessages("main")
-      .then((data) => setMessages(Array.isArray(data) ? data : []))
+    API.get("/chat/messages/main")
+      .then((res) => setMessages(Array.isArray(res.data) ? res.data : []))
       .catch((err) => { console.error("Chat load failed:", err.message); setMessages([]); })
       .finally(() => setLoading(false));
   }, [token]);
 
-  // Socket
   useEffect(() => {
     if (!user) return;
     socket.connect();
