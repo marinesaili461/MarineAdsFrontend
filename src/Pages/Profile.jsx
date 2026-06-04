@@ -1,10 +1,8 @@
 import React, { useContext, useState } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import { WalletContext } from "../Context/WalletContext";
-import { updateProfile } from "../api/index";
-import TopBar from "../Components/TopBar";
+import API from "../api/axios";
 import BottomNav from "../Components/BottomNav";
-import logo from "../Assets/logo.png";
 
 export default function Profile() {
   const { user, setUser, logout } = useContext(AuthContext);
@@ -26,8 +24,8 @@ export default function Profile() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await updateProfile(form);
-      setUser((prev) => ({ ...prev, ...updated }));
+      const res = await API.put("/users/profile", form);
+      setUser((prev) => ({ ...prev, ...res.data }));
       flash("✅ Profile updated!");
       setEditMode(false);
     } catch (err) {
@@ -45,17 +43,14 @@ export default function Profile() {
 
   return (
     <div className="bg-gray-100 min-h-screen pb-24">
-      {/* Top nav */}
       <nav className="bg-orange-400 w-full flex items-center justify-between px-4 sticky top-0 z-50 shadow-md" style={{ height: "64px" }}>
         <h1 className="text-lg font-bold text-white">My Profile</h1>
         <i className="fas fa-cog text-white text-xl"></i>
       </nav>
 
-      {/* Profile Card */}
       <div className="bg-white shadow rounded-xl mx-3 mt-4 p-5 flex flex-col items-center text-center">
         <img
-          src={user?.photo || avatar}
-          alt="Avatar"
+          src={user?.photo || avatar} alt="Avatar"
           style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", border: "3px solid #f97316" }}
         />
         <h2 className="text-base font-bold text-gray-800 mt-3">{user?.fullName}</h2>
@@ -71,7 +66,6 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Account Details */}
       <div className="bg-white shadow rounded-xl mx-3 mt-3 p-4">
         <h3 className="font-semibold text-gray-700 border-b border-gray-100 pb-2 mb-3">Account Details</h3>
         {[
@@ -88,7 +82,6 @@ export default function Profile() {
         ))}
       </div>
 
-      {/* Edit Form */}
       {editMode && (
         <div className="bg-white shadow rounded-xl mx-3 mt-3 p-4">
           <h3 className="font-semibold text-gray-700 border-b border-gray-100 pb-2 mb-3">Edit Profile</h3>
@@ -100,8 +93,7 @@ export default function Profile() {
             <div key={name} className="mb-3">
               <label className="text-xs text-gray-500 font-semibold block mb-1">{label}</label>
               <input
-                type={type}
-                value={form[name]}
+                type={type} value={form[name]}
                 onChange={(e) => setForm({ ...form, [name]: e.target.value })}
                 className="w-full border-2 border-gray-200 focus:border-orange-400 rounded-xl px-3 py-2 text-sm outline-none transition"
               />
@@ -114,8 +106,7 @@ export default function Profile() {
           )}
           <div className="flex gap-2 mt-2">
             <button
-              onClick={handleSave}
-              disabled={saving}
+              onClick={handleSave} disabled={saving}
               className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl py-2 text-sm transition disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save"}
@@ -130,7 +121,6 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Actions */}
       <div className="bg-white shadow rounded-xl mx-3 mt-3 p-4 space-y-2">
         <h3 className="font-semibold text-gray-700 border-b border-gray-100 pb-2 mb-1">Actions</h3>
         {!editMode && (
