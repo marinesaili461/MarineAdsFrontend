@@ -1,9 +1,8 @@
-import React, { useState, useContext } from "react";
-import { AuthContext } from "../Context/AuthContext";
-import { redeemCode } from "../api/rewardApi";
+// src/Components/RewardCode.jsx
+import React, { useState } from "react";
+import API from "../api/axios";
 
 const RewardCode = () => {
-  const { token } = useContext(AuthContext);
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,12 +16,11 @@ const RewardCode = () => {
 
     setLoading(true);
     try {
-      const res = await redeemCode(code, token);
+      const res = await API.post("/reward-codes/redeem", { code });
       setMessage(`${res.data.message}`);
-      setCode(""); // clear input after success
+      setCode("");
     } catch (error) {
-      const errMsg =
-        error.response?.data?.message || "❌ Failed to redeem code.";
+      const errMsg = error.response?.data?.message || "❌ Failed to redeem code.";
       setMessage(errMsg);
     } finally {
       setLoading(false);
