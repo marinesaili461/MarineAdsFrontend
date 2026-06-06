@@ -1,5 +1,6 @@
+//src/Pages/Admin/AdminPermissions.jsx
 import React, { useEffect, useState } from "react";
-import { adminGetUsers, adminSetPermissions, adminChangeRole } from "../../api/index";
+import API from "../../api/axios";
 
 const ALL_SECTIONS = [
   { key: "settings",      label: "Settings" },
@@ -12,18 +13,18 @@ const ALL_SECTIONS = [
 ];
 
 const AdminPermissions = () => {
-  const [admins, setAdmins] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving]   = useState(null);
-  const [msg, setMsg]         = useState({ text: "", success: true });
+  const [admins, setAdmins]     = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(null);
+  const [msg, setMsg]           = useState({ text: "", success: true });
   const [selected, setSelected] = useState(null);
-  const [hidden, setHidden]   = useState([]);
+  const [hidden, setHidden]     = useState([]);
 
   const flash = (t, s = true) => { setMsg({ text: t, success: s }); setTimeout(() => setMsg({ text: "", success: true }), 3000); };
 
   useEffect(() => {
-    adminGetUsers({ role: "admin", limit: 50 })
-      .then((res) => setAdmins(res.users || []))
+    API.get("/admin/users", { params: { role: "admin", limit: 50 } })
+      .then((res) => setAdmins(res.data.users || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -41,7 +42,7 @@ const AdminPermissions = () => {
     if (!selected) return;
     setSaving(selected._id);
     try {
-      await adminSetPermissions({ userId: selected._id, hiddenSections: hidden });
+      await API.put("/admin/permissions", { userId: selected._id, hiddenSections: hidden });
       flash(`✅ Permissions updated for ${selected.fullName}`);
       setSelected(null);
     } catch (e) { flash("❌ " + (e.response?.data?.message || "Failed."), false); }
@@ -50,7 +51,7 @@ const AdminPermissions = () => {
 
   const handleRoleChange = async (userId, role) => {
     try {
-      await adminChangeRole({ userId, role });
+      await API.put("/admin/change-role", { userId, role });
       flash(`Role updated ✅`);
       setAdmins((prev) => prev.map((a) => a._id === userId ? { ...a, role } : a));
     } catch (e) { flash("❌ " + (e.response?.data?.message || "Failed."), false); }
