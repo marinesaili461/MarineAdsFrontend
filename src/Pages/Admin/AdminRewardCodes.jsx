@@ -12,6 +12,35 @@ const INIT_FORM = {
   expiresAt: "",
 };
 
+const CopyBox = ({ code }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="flex items-center rounded-xl overflow-hidden border-2 border-orange-200 shrink-0">
+      <div className="bg-orange-50 px-3 py-1.5 text-sm font-black text-gray-700 tracking-widest select-all">
+        {code}
+      </div>
+      <button
+        onClick={handleCopy}
+        className={`px-3 py-1.5 text-xs font-bold transition-all ${
+          copied
+            ? "bg-green-500 text-white"
+            : "bg-orange-500 hover:bg-orange-600 text-white"
+        }`}
+      >
+        {copied ? "✓ Copied!" : "Copy"}
+      </button>
+    </div>
+  );
+};
+
 const AdminRewardCodes = () => {
   const [codes, setCodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -301,11 +330,9 @@ const AdminRewardCodes = () => {
 
               return (
                 <div key={c._id} className="p-4">
+                  {/* ── Top row: status/type info + action buttons ── */}
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="font-black text-gray-800 tracking-widest text-sm shrink-0">
-                        {c.code}
-                      </span>
                       <span
                         className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${statusColor}`}
                       >
@@ -323,9 +350,7 @@ const AdminRewardCodes = () => {
                         {c.redeemedCount}/{c.maxUsers} used
                       </span>
                       <button
-                        onClick={() =>
-                          setExpandedCode(expandedCode === c._id ? null : c._id)
-                        }
+                        onClick={() => setExpandedCode(expandedCode === c._id ? null : c._id)}
                         className="text-xs font-bold px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
                       >
                         {expandedCode === c._id ? "Hide" : "Details"}
@@ -347,14 +372,17 @@ const AdminRewardCodes = () => {
                     </div>
                   </div>
 
-                  {/* Stats row */}
-                  <div className="flex gap-4 mt-2 text-xs text-gray-400">
-                    <span>Pool: <strong className="text-gray-600">${Number(c.totalAmount).toFixed(3)}</strong></span>
-                    <span>Expires: <strong className="text-gray-600">{c.expiresAt ? new Date(c.expiresAt).toLocaleString() : "Never"}</strong></span>
-                    <span>Created: <strong className="text-gray-600">{new Date(c.createdAt).toLocaleDateString()}</strong></span>
+                  {/* ── Copy box + stats row ── */}
+                  <div className="flex items-center justify-between gap-3 mt-2 flex-wrap">
+                    <div className="flex gap-4 text-xs text-gray-400">
+                      <span>Pool: <strong className="text-gray-600">${Number(c.totalAmount).toFixed(3)}</strong></span>
+                      <span>Expires: <strong className="text-gray-600">{c.expiresAt ? new Date(c.expiresAt).toLocaleString() : "Never"}</strong></span>
+                      <span>Created: <strong className="text-gray-600">{new Date(c.createdAt).toLocaleDateString()}</strong></span>
+                    </div>
+                    <CopyBox code={c.code} />
                   </div>
 
-                  {/* Expanded redemption history */}
+                  {/* ── Expanded redemption history ── */}
                   {expandedCode === c._id && (
                     <div className="mt-3 bg-gray-50 rounded-xl p-3">
                       <p className="text-xs font-bold text-gray-600 mb-2">
