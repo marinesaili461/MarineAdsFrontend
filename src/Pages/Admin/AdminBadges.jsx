@@ -1,13 +1,14 @@
+//src/Pages/Admin/AdminBadges.jsx
 import React, { useEffect, useState } from "react";
-import { adminGetSettings, adminUpdateBadgeTiers } from "../../api/index";
+import API from "../../api/axios";
 
 const empty = { name: "", minReferrals: "", badgeImage: "", color: "#f97316" };
 
 const AdminBadges = () => {
-  const [tiers, setTiers]   = useState([]);
+  const [tiers, setTiers]     = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg]       = useState({ text: "", success: true });
+  const [saving, setSaving]   = useState(false);
+  const [msg, setMsg]         = useState({ text: "", success: true });
 
   const flash = (text, success = true) => {
     setMsg({ text, success });
@@ -15,8 +16,8 @@ const AdminBadges = () => {
   };
 
   useEffect(() => {
-    adminGetSettings()
-      .then((s) => setTiers(s.badgeTiers || []))
+    API.get("/admin/settings")
+      .then((res) => setTiers(res.data.badgeTiers || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -38,7 +39,7 @@ const AdminBadges = () => {
         badgeImage: t.badgeImage,
         color: t.color,
       }));
-      await adminUpdateBadgeTiers(cleaned);
+      await API.put("/admin/settings/badge-tiers", { badgeTiers: cleaned });
       flash("✅ Badge tiers saved!");
     } catch (e) {
       flash("❌ " + (e.response?.data?.message || "Save failed."), false);
