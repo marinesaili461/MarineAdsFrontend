@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { adminGetSettings, adminUpdateSettings } from "../../api/index";
+import API from "../../api/axios";
 
 const Field = ({ label, name, value, onChange, type = "number", hint }) => (
   <div>
@@ -17,30 +17,33 @@ const Field = ({ label, name, value, onChange, type = "number", hint }) => (
 );
 
 const AdminSettings = () => {
-  const [form, setForm]     = useState({});
+  const [form, setForm]       = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
   const [msg, setMsg]         = useState({ text: "", success: true });
 
   useEffect(() => {
-    adminGetSettings()
-      .then((s) => setForm({
-        platformFeePct:          s.platformFeePct          ?? "",
-        offerwallFeePct:         s.offerwallFeePct         ?? "",
-        withdrawalFeePct:        s.withdrawalFeePct        ?? "",
-        minWithdrawal:           s.minWithdrawal           ?? "",
-        withdrawalDays:          s.withdrawalDays          ?? "",
-        signupBonus:             s.signupBonus             ?? "",
-        dailyCheckInAmount:      s.dailyCheckInAmount      ?? "",
-        dailyCheckInEnabled:     s.dailyCheckInEnabled     ?? false,
-        referralCommissionPct:   s.referralCommissionPct   ?? "",
-        referralSystemCutPct:    s.referralSystemCutPct    ?? "",
-        referralTasksToActivate: s.referralTasksToActivate ?? "",
-        autoApproveDays:         s.autoApproveDays         ?? "",
-        minPayGlobal:            s.minPayGlobal            ?? "",
-        maintenanceMode:         s.maintenanceMode         ?? false,
-        maintenanceMessage:      s.maintenanceMessage      ?? "",
-      }))
+    API.get("/admin/settings")
+      .then((res) => {
+        const s = res.data;
+        setForm({
+          platformFeePct:          s.platformFeePct          ?? "",
+          offerwallFeePct:         s.offerwallFeePct         ?? "",
+          withdrawalFeePct:        s.withdrawalFeePct        ?? "",
+          minWithdrawal:           s.minWithdrawal           ?? "",
+          withdrawalDays:          s.withdrawalDays          ?? "",
+          signupBonus:             s.signupBonus             ?? "",
+          dailyCheckInAmount:      s.dailyCheckInAmount      ?? "",
+          dailyCheckInEnabled:     s.dailyCheckInEnabled     ?? false,
+          referralCommissionPct:   s.referralCommissionPct   ?? "",
+          referralSystemCutPct:    s.referralSystemCutPct    ?? "",
+          referralTasksToActivate: s.referralTasksToActivate ?? "",
+          autoApproveDays:         s.autoApproveDays         ?? "",
+          minPayGlobal:            s.minPayGlobal            ?? "",
+          maintenanceMode:         s.maintenanceMode         ?? false,
+          maintenanceMessage:      s.maintenanceMessage      ?? "",
+        });
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -57,7 +60,7 @@ const AdminSettings = () => {
       section.fields.forEach((f) => {
         if (form[f] !== "") payload[f] = typeof form[f] === "boolean" ? form[f] : Number(form[f]) || form[f];
       });
-      await adminUpdateSettings(payload);
+      await API.put("/admin/settings", payload);
       setMsg({ text: "✅ Saved!", success: true });
     } catch (err) {
       setMsg({ text: err.response?.data?.message || "❌ Save failed.", success: false });
@@ -82,9 +85,9 @@ const AdminSettings = () => {
       key: "wallet",
       fields: ["minWithdrawal", "withdrawalDays", "signupBonus"],
       inputs: [
-        { label: "Minimum Withdrawal ($)", name: "minWithdrawal",  hint: "e.g. 5" },
+        { label: "Minimum Withdrawal ($)",       name: "minWithdrawal",  hint: "e.g. 5" },
         { label: "Withdrawal Day (0=Sun, 5=Fri)", name: "withdrawalDays", hint: "Day of week withdrawals open" },
-        { label: "Signup Bonus ($)",       name: "signupBonus",    hint: "Given after email verification" },
+        { label: "Signup Bonus ($)",              name: "signupBonus",    hint: "Given after email verification" },
       ],
     },
     {
@@ -112,9 +115,9 @@ const AdminSettings = () => {
       key: "referral",
       fields: ["referralCommissionPct", "referralSystemCutPct", "referralTasksToActivate"],
       inputs: [
-        { label: "Referral Commission %",       name: "referralCommissionPct",   hint: "% of referee earnings given to referrer" },
-        { label: "System Cut from Commission %",name: "referralSystemCutPct",    hint: "% platform takes from commission" },
-        { label: "Tasks to Activate Referral",  name: "referralTasksToActivate", hint: "Tasks referee must complete" },
+        { label: "Referral Commission %",        name: "referralCommissionPct",   hint: "% of referee earnings given to referrer" },
+        { label: "System Cut from Commission %", name: "referralSystemCutPct",    hint: "% platform takes from commission" },
+        { label: "Tasks to Activate Referral",   name: "referralTasksToActivate", hint: "Tasks referee must complete" },
       ],
     },
     {
