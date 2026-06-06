@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { adminGetRewardCodes, adminCreateRewardCode, adminDeactivateCode } from "../../api/index";
+import API from "../../api/axios";
 
 const AdminRewardCodes = () => {
-  const [codes, setCodes]   = useState([]);
+  const [codes, setCodes]     = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg]       = useState({ text: "", success: true });
-  const [form, setForm]     = useState({ code: "", amount: "", maxUses: "", expiresAt: "" });
+  const [saving, setSaving]   = useState(false);
+  const [msg, setMsg]         = useState({ text: "", success: true });
+  const [form, setForm]       = useState({ code: "", amount: "", maxUses: "", expiresAt: "" });
 
   const flash = (t, s = true) => { setMsg({ text: t, success: s }); setTimeout(() => setMsg({ text: "", success: true }), 3000); };
 
   const fetchCodes = () => {
-    adminGetRewardCodes()
-      .then(setCodes)
+    API.get("/admin/reward-codes")
+      .then((res) => setCodes(res.data.codes || res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -24,10 +24,10 @@ const AdminRewardCodes = () => {
     if (!form.amount) return flash("❌ Amount is required.", false);
     setSaving(true);
     try {
-      await adminCreateRewardCode({
-        code: form.code.trim().toUpperCase() || undefined,
-        amount: Number(form.amount),
-        maxUses: form.maxUses ? Number(form.maxUses) : undefined,
+      await API.post("/admin/reward-codes", {
+        code:      form.code.trim().toUpperCase() || undefined,
+        amount:    Number(form.amount),
+        maxUses:   form.maxUses  ? Number(form.maxUses) : undefined,
         expiresAt: form.expiresAt || undefined,
       });
       setForm({ code: "", amount: "", maxUses: "", expiresAt: "" });
@@ -38,7 +38,7 @@ const AdminRewardCodes = () => {
   };
 
   const handleDeactivate = async (id) => {
-    try { await adminDeactivateCode(id); flash("Code deactivated ✅"); fetchCodes(); }
+    try { await API.patch(`/admin/reward-codes/${id}/deactivate`); flash("Code deactivated ✅"); fetchCodes(); }
     catch (e) { flash("❌ Failed.", false); }
   };
 
