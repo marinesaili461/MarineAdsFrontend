@@ -31,7 +31,7 @@ const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(res.data.user));
     setToken(res.data.token);
     setUser(res.data.user);
-    return res.data;
+    return res.data; // ← returns { token, user } so Login.jsx can read role
   };
 
   const register = async (formData) => {
