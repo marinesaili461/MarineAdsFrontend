@@ -26,6 +26,7 @@ import PostTask from "./Pages/PostTask";
 import TaskStatus from "./Pages/TaskStatus";
 import Campaigns from "./Pages/Campaigns";
 import SubmitProof from "./Pages/SubmitProof";
+import FAQ from "./Pages/FAQ";
 
 import AdminLayout from "./Pages/Admin/AdminLayout";
 import AdminDashboard from "./Pages/Admin/AdminDashboard";
@@ -39,6 +40,7 @@ import AdminWithdrawals from "./Pages/Admin/AdminWithdrawals";
 import AdminPermissions from "./Pages/Admin/AdminPermissions";
 import AdminCampaigns from "./Pages/Admin/AdminCampaigns";
 import AdminSubmittedProofs from "./Pages/Admin/AdminSubmittedProofs";
+import AdminFAQ from "./Pages/Admin/AdminFAQ";
 
 const App = () => (
   <AuthProvider>
@@ -69,7 +71,9 @@ const App = () => (
                     <Route path="/task-status"      element={<ProtectedRoute><TaskStatus /></ProtectedRoute>} />
                     <Route path="/campaigns"        element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
                     <Route path="/submit-proof/:id" element={<ProtectedRoute><SubmitProof /></ProtectedRoute>} />
+                    <Route path="/faq" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
 
+                    
                     {/* Admin */}
                     <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                       <Route index element={<AdminDashboard />} />
@@ -83,6 +87,7 @@ const App = () => (
                       <Route path="permissions"       element={<AdminPermissions />} />
                       <Route path="campaigns"         element={<AdminCampaigns />} />
                       <Route path="submitted-proofs"  element={<AdminSubmittedProofs />} />
+                      <Route path="faq" element={<AdminFAQ />} />
                     </Route>
 
                     <Route path="*" element={<NotFound />} />
