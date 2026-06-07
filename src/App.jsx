@@ -23,6 +23,7 @@ import ForgotPassword from "./Pages/Forgotpassword";
 import NotFound from "./Pages/NotFound";
 import PostTask from "./Pages/PostTask";
 import TaskStatus from "./Pages/TaskStatus";
+import Campaigns from "./Pages/Campaigns";
 
 
 import AdminLayout from "./Pages/Admin/AdminLayout";
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/reward"   element={<ProtectedRoute><Reward /></ProtectedRoute>} />
                 <Route path="/post-task"   element={<ProtectedRoute><PostTask /></ProtectedRoute>} />
                 <Route path="/task-status" element={<ProtectedRoute><TaskStatus /></ProtectedRoute>} />
+                <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
 
 
                 {/* Admin */}
