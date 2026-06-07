@@ -1,79 +1,43 @@
 import React, { useContext, useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/AuthContext";
+import { ProofBadgeContext } from "../../Context/ProofBadgeContext";
 import logo from "../../Assets/logo.png";
-
-const ALL_SECTIONS = [
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    icon: "fa-chart-line",
-    to: "/admin",
-  },
-  {
-    key: "users",
-    label: "Users",
-    icon: "fa-users",
-    to: "/admin/users",
-  },
-  {
-    key: "settings",
-    label: "Settings",
-    icon: "fa-sliders",
-    to: "/admin/settings",
-  },
-  {
-    key: "campaigns",
-    label: "Campaigns",
-    icon: "fa-clipboard-list",
-    to: "/admin/campaigns",
-  },
-  {
-    key: "badges",
-    label: "Badges",
-    icon: "fa-medal",
-    to: "/admin/badges",
-  },
-  {
-    key: "announcements",
-    label: "Announcements",
-    icon: "fa-bullhorn",
-    to: "/admin/announcements",
-  },
-  {
-    key: "polls",
-    label: "Polls",
-    icon: "fa-poll",
-    to: "/admin/polls",
-  },
-  {
-    key: "rewards",
-    label: "Reward Codes",
-    icon: "fa-gift",
-    to: "/admin/rewards",
-  },
-  {
-    key: "withdrawals",
-    label: "Withdrawals",
-    icon: "fa-money-bill",
-    to: "/admin/withdrawals",
-  },
-  {
-    key: "permissions",
-    label: "Permissions",
-    icon: "fa-shield-halved",
-    to: "/admin/permissions",
-    superadminOnly: true,
-  },
-];
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
+  const { adminPendingCount, formatBadge } = useContext(ProofBadgeContext);
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isSuperAdmin = user?.role === "superadmin";
   const hidden = user?.hiddenSections || [];
+
+  const ALL_SECTIONS = [
+    { key: "dashboard",      label: "Dashboard",         icon: "fa-chart-line",     to: "/admin" },
+    { key: "users",          label: "Users",             icon: "fa-users",          to: "/admin/users" },
+    { key: "settings",       label: "Settings",          icon: "fa-sliders",        to: "/admin/settings" },
+    { key: "campaigns",      label: "Campaigns",         icon: "fa-clipboard-list", to: "/admin/campaigns" },
+    {
+      key: "submitted-proofs",
+      label: "Submitted Proofs",
+      icon: "fa-file-check",
+      to: "/admin/submitted-proofs",
+      badge: adminPendingCount,
+    },
+    { key: "badges",         label: "Badges",            icon: "fa-medal",          to: "/admin/badges" },
+    { key: "announcements",  label: "Announcements",     icon: "fa-bullhorn",       to: "/admin/announcements" },
+    { key: "polls",          label: "Polls",             icon: "fa-poll",           to: "/admin/polls" },
+    { key: "rewards",        label: "Reward Codes",      icon: "fa-gift",           to: "/admin/rewards" },
+    { key: "withdrawals",    label: "Withdrawals",       icon: "fa-money-bill",     to: "/admin/withdrawals" },
+    {
+      key: "permissions",
+      label: "Permissions",
+      icon: "fa-shield-halved",
+      to: "/admin/permissions",
+      superadminOnly: true,
+    },
+  ];
 
   const visibleSections = ALL_SECTIONS.filter((section) => {
     if (section.superadminOnly && !isSuperAdmin) return false;
@@ -108,20 +72,11 @@ const AdminLayout = () => {
           <img
             src={logo}
             alt="logo"
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              objectFit: "cover",
-            }}
+            style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
           />
           <div>
-            <p className="text-white font-extrabold text-sm leading-tight">
-              MarineCash
-            </p>
-            <p className="text-orange-100 text-xs capitalize">
-              {user?.role}
-            </p>
+            <p className="text-white font-extrabold text-sm leading-tight">MarineCash</p>
+            <p className="text-orange-100 text-xs capitalize">{user?.role}</p>
           </div>
         </div>
 
@@ -136,17 +91,19 @@ const AdminLayout = () => {
               onClick={() => setSidebarOpen(false)}
             >
               <i className={`fas ${section.icon} w-4 text-center`} />
-              <span>{section.label}</span>
+              <span className="flex-1">{section.label}</span>
+              {section.badge > 0 && (
+                <span className="min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 shadow-md animate-pulse">
+                  {formatBadge(section.badge)}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
 
         {/* User + Logout */}
         <div className="p-4 border-t border-gray-100">
-          <p className="text-xs text-gray-500 font-semibold truncate mb-2">
-            {user?.fullName}
-          </p>
-
+          <p className="text-xs text-gray-500 font-semibold truncate mb-2">{user?.fullName}</p>
           <button
             onClick={handleLogout}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl py-2 text-sm flex items-center justify-center gap-2 transition"
@@ -167,7 +124,6 @@ const AdminLayout = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
         <header className="bg-orange-400 h-14 flex items-center justify-between px-4 shadow-md shrink-0">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -176,9 +132,7 @@ const AdminLayout = () => {
             <i className="fas fa-bars"></i>
           </button>
 
-          <h1 className="text-white font-bold text-base">
-            Admin Dashboard
-          </h1>
+          <h1 className="text-white font-bold text-base">Admin Dashboard</h1>
 
           <div className="flex items-center gap-2">
             {isSuperAdmin && (
@@ -186,17 +140,12 @@ const AdminLayout = () => {
                 Super Admin
               </span>
             )}
-
-            <NavLink
-              to="/home"
-              className="text-white text-xs font-semibold hover:underline"
-            >
+            <NavLink to="/home" className="text-white text-xs font-semibold hover:underline">
               ← User Side
             </NavLink>
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4">
           <Outlet />
         </main>
