@@ -14,9 +14,9 @@ export default function SubmitProof() {
   const [done, setDone]             = useState(false);
   const [error, setError]           = useState("");
 
-  const [proofText, setProofText]           = useState("");
-  const [proofUrl, setProofUrl]             = useState("");
-  const [images, setImages]                 = useState([]); // [{ file, preview, uploading, url }]
+  const [proofText, setProofText] = useState("");
+  const [proofUrl, setProofUrl]   = useState("");
+  const [images, setImages]       = useState([]); // [{ file, preview, uploading, url }]
 
   useEffect(() => {
     API.get(`/campaign/${id}`)
@@ -51,10 +51,10 @@ export default function SubmitProof() {
       if (img.url) { uploaded.push(img.url); continue; }
       setImages((prev) => prev.map((x, idx) => idx === i ? { ...x, uploading: true } : x));
       try {
-        const base64 = await toBase64(img.file);
-        const res = await API.post("/campaign/upload-image", {
-          imageBase64: base64.split(",")[1],
-          mimeType: img.file.type,
+        const formData = new FormData();
+        formData.append("image", img.file);
+        const res = await API.post("/campaign/upload-image", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
         uploaded.push(res.data.url);
         setImages((prev) => prev.map((x, idx) => idx === i ? { ...x, uploading: false, url: res.data.url } : x));
@@ -64,14 +64,6 @@ export default function SubmitProof() {
     }
     return uploaded;
   };
-
-  const toBase64 = (file) =>
-    new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result);
-      r.onerror = () => rej();
-      r.readAsDataURL(file);
-    });
 
   const handleSubmit = async () => {
     setError("");
@@ -88,7 +80,7 @@ export default function SubmitProof() {
       });
       setDone(true);
     } catch (e) {
-      setError(e.message || e.response?.data?.message || "Submission failed.");
+      setError(e.response?.data?.message || e.message || "Submission failed.");
     }
     setSubmitting(false);
   };
@@ -202,14 +194,19 @@ export default function SubmitProof() {
           </a>
         )}
 
-        {/* Example images */}
+        {/* Example images from poster */}
         {campaign?.exampleImageUrls?.length > 0 && (
           <div className="bg-white rounded-2xl shadow p-4">
             <p className="text-xs font-bold text-gray-600 mb-3">🖼 Example Proof (from poster)</p>
             <div className="flex gap-2 flex-wrap">
               {campaign.exampleImageUrls.map((url, i) => (
-                <img key={i} src={url} alt={`example-${i}`}
-                  className="w-20 h-20 object-cover rounded-xl border-2 border-gray-200" />
+                <img
+                  key={i}
+                  src={url}
+                  alt={`example-${i}`}
+                  className="w-20 h-20 object-cover rounded-xl border-2 border-gray-200"
+                  onError={(e) => { e.target.style.display = "none"; }}
+                />
               ))}
             </div>
           </div>
@@ -295,7 +292,6 @@ export default function SubmitProof() {
               />
             </label>
 
-            {/* Irrelevant image warning */}
             <div className="mt-2 flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-xl px-3 py-2">
               <i className="fas fa-exclamation-circle text-yellow-500 text-xs mt-0.5 shrink-0"></i>
               <p className="text-[10px] text-yellow-700 leading-relaxed">
@@ -328,4 +324,4 @@ export default function SubmitProof() {
       <BottomNav />
     </div>
   );
-}
+              }
