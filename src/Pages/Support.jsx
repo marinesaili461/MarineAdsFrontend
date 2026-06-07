@@ -161,7 +161,7 @@ const Support = () => {
 
       {/* New Ticket Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center pb-48">
           <div className="bg-white w-full max-w-lg rounded-t-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-gray-800 text-base">New Support Ticket</h3>
