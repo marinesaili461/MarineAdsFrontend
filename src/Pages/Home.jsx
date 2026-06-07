@@ -10,16 +10,16 @@ import BottomNav from "../Components/BottomNav";
 
 const menuItems = [
   { icon: "fa-coins",           color: "text-green-500",   label: "Earn",          to: "/earn" },
-  { icon: "fa-wallet",          color: "text-blue-500",    label: "Wallet",        to: "/wallet" },
-  { icon: "fa-users",           color: "text-purple-500",  label: "Referrals",     to: "/referral" },
-  { icon: "fa-user",            color: "text-orange-500",  label: "Profile",       to: "/profile" },
+  { icon: "fa-wallet",          color: "text-green-500",    label: "Wallet",        to: "/wallet" },
+  { icon: "fa-users",           color: "text-green-500",  label: "Referrals",     to: "/referral" },
+  { icon: "fa-user",            color: "text-green-500",  label: "Profile",       to: "/profile" },
   { icon: "fa-whatsapp fab",    color: "text-green-500",   label: "Join Group",    to: "https://chat.whatsapp.com/EUQiHGRx8IqEFWZd9NoUML", external: true },
-  { icon: "fa-comments",        color: "text-pink-500",    label: "Chatroom",      to: "/chat" },
-  { icon: "fa-circle-question", color: "text-indigo-500",  label: "FAQ",           to: "/faq" },
-  { icon: "fa-headset",         color: "text-red-500",     label: "Support",       to: "/support" },
-  { icon: "fa-plus-circle",     color: "text-yellow-500",  label: "Post Task",     to: "/post-task" },
-  { icon: "fa-bell",            color: "text-teal-500",    label: "Notifications", to: "/notifications" },
-  { icon: "fa-crown",           color: "text-amber-500",   label: "Top Earners",   to: "/top-earners" },
+  { icon: "fa-comments",        color: "text-green-500",    label: "Chatroom",      to: "/chat" },
+  { icon: "fa-circle-question", color: "text-green-500",  label: "FAQ",           to: "/faq" },
+  { icon: "fa-headset",         color: "text-green-500",     label: "Support",       to: "/support" },
+  { icon: "fa-plus-circle",     color: "text-green-500",  label: "Post Task",     to: "/post-task" },
+  { icon: "fa-bell",            color: "text-green-500",    label: "Notifications", to: "/notifications" },
+  { icon: "fa-crown",           color: "text-green-500",   label: "Top Earners",   to: "/top-earners" },
 ];
 
 // Returns how many hours:minutes until midnight
