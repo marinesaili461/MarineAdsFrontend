@@ -4,23 +4,10 @@ import { Link } from "react-router-dom";
 import { AuthContext } from "../Context/AuthContext";
 import { WalletContext } from "../Context/WalletContext";
 import { RewardCodeContext } from "../Context/RewardCodeContext";
+import { SupportBadgeContext } from "../Context/SupportBadgeContext";
 import API from "../api/axios";
 import TopBar from "../Components/TopBar";
 import BottomNav from "../Components/BottomNav";
-
-const menuItems = [
-  { icon: "fa-coins",           color: "text-green-500",   label: "Earn",          to: "/earn" },
-  { icon: "fa-wallet",          color: "text-green-500",    label: "Wallet",        to: "/wallet" },
-  { icon: "fa-users",           color: "text-green-500",  label: "Referrals",     to: "/referral" },
-  { icon: "fa-user",            color: "text-green-500",  label: "Profile",       to: "/profile" },
-  { icon: "fa-whatsapp fab",    color: "text-green-500",   label: "Join Group",    to: "https://chat.whatsapp.com/EUQiHGRx8IqEFWZd9NoUML", external: true },
-  { icon: "fa-comments",        color: "text-green-500",    label: "Chatroom",      to: "/chat" },
-  { icon: "fa-circle-question", color: "text-green-500",  label: "FAQ",           to: "/faq" },
-  { icon: "fa-headset",         color: "text-green-500",     label: "Support",       to: "/support" },
-  { icon: "fa-plus-circle",     color: "text-green-500",  label: "Post Task",     to: "/post-task" },
-  { icon: "fa-bell",            color: "text-green-500",    label: "Notifications", to: "/notifications" },
-  { icon: "fa-crown",           color: "text-green-500",   label: "Top Earners",   to: "/top-earners" },
-];
 
 // Returns how many hours:minutes until midnight
 const timeUntilMidnight = () => {
@@ -37,6 +24,7 @@ export default function Home() {
   const { user } = useContext(AuthContext);
   const { wallet, fetchWallet } = useContext(WalletContext);
   const { redeemCode } = useContext(RewardCodeContext);
+  const { userUnread, formatBadge } = useContext(SupportBadgeContext);
 
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
@@ -48,6 +36,20 @@ export default function Home() {
   const [checkInEnabled, setCheckInEnabled] = useState(true);
   const [countdown, setCountdown] = useState("");
 
+  const menuItems = [
+    { icon: "fa-coins",           color: "text-green-500",  label: "Earn",          to: "/earn" },
+    { icon: "fa-wallet",          color: "text-green-500",  label: "Wallet",        to: "/wallet" },
+    { icon: "fa-users",           color: "text-green-500",  label: "Referrals",     to: "/referral" },
+    { icon: "fa-user",            color: "text-green-500",  label: "Profile",       to: "/profile" },
+    { icon: "fa-whatsapp fab",    color: "text-green-500",  label: "Join Group",    to: "https://chat.whatsapp.com/EUQiHGRx8IqEFWZd9NoUML", external: true },
+    { icon: "fa-comments",        color: "text-green-500",  label: "Chatroom",      to: "/chat" },
+    { icon: "fa-circle-question", color: "text-green-500",  label: "FAQ",           to: "/faq" },
+    { icon: "fa-headset",         color: "text-green-500",  label: "Support",       to: "/support", badge: userUnread },
+    { icon: "fa-plus-circle",     color: "text-green-500",  label: "Post Task",     to: "/post-task" },
+    { icon: "fa-bell",            color: "text-green-500",  label: "Notifications", to: "/notifications" },
+    { icon: "fa-crown",           color: "text-green-500",  label: "Top Earners",   to: "/top-earners" },
+  ];
+
   // Load daily check-in settings + whether user already claimed today
   useEffect(() => {
     const loadCheckIn = async () => {
@@ -57,10 +59,9 @@ export default function Home() {
         setCheckInAmount(s.dailyCheckInAmount ?? null);
         setCheckInEnabled(s.dailyCheckInEnabled ?? false);
       } catch {
-        // silently fail — button will just show default state
+        // silently fail
       }
 
-      // Determine if already claimed from lastCheckIn on user object
       if (user?.lastCheckIn) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -90,7 +91,7 @@ export default function Home() {
     } catch (err) {
       const m = err.response?.data?.message || "❌ Failed to claim.";
       setMsg(m);
-      if (err.response?.status === 400) setAlreadyClaimed(true); // already claimed
+      if (err.response?.status === 400) setAlreadyClaimed(true);
     }
     setClaiming(false);
     setTimeout(() => setMsg(""), 5000);
@@ -175,9 +176,16 @@ export default function Home() {
             <Link
               key={item.label}
               to={item.to}
-              className="bg-white shadow rounded-xl p-3 flex flex-col items-center hover:scale-105 transition-all"
+              className="relative bg-white shadow rounded-xl p-3 flex flex-col items-center hover:scale-105 transition-all"
             >
-              <i className={`fas ${item.icon} ${item.color} text-4xl`}></i>
+              <div className="relative">
+                <i className={`fas ${item.icon} ${item.color} text-4xl`}></i>
+                {item.badge > 0 && (
+                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 shadow animate-bounce">
+                    {formatBadge(item.badge)}
+                  </span>
+                )}
+              </div>
               <p className="text-xs font-semibold mt-2 text-gray-700">{item.label}</p>
             </Link>
           )
