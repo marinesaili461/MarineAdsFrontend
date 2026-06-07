@@ -3,7 +3,6 @@ import API from "../../api/axios";
 
 const STATUS_COLORS = {
   pending_approval: "bg-yellow-100 text-yellow-700",
-  draft:            "bg-blue-100 text-blue-700",
   active:           "bg-green-100 text-green-700",
   paused:           "bg-gray-100 text-gray-600",
   exhausted:        "bg-orange-100 text-orange-700",
@@ -13,22 +12,30 @@ const STATUS_COLORS = {
 };
 
 const CATEGORY_ICONS = {
-  survey: "fa-clipboard-list", video: "fa-play-circle", follow: "fa-users",
-  signup: "fa-user-plus", offer: "fa-tag", app_install: "fa-download",
-  game: "fa-gamepad", other: "fa-tasks",
+  survey:      "fa-clipboard-list",
+  video:       "fa-play-circle",
+  follow:      "fa-users",
+  signup:      "fa-user-plus",
+  offer:       "fa-tag",
+  app_install: "fa-download",
+  game:        "fa-gamepad",
+  other:       "fa-tasks",
 };
 
+const STATUSES = ["all", "pending_approval", "active", "paused", "exhausted", "stopped", "rejected", "completed"];
+
 const AdminCampaigns = () => {
-  const [campaigns, setCampaigns]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [selected, setSelected]       = useState(null);
-  const [detail, setDetail]           = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [rejectReason, setRejectReason]   = useState("");
+  const [campaigns, setCampaigns]             = useState([]);
+  const [loading, setLoading]                 = useState(true);
+  const [selected, setSelected]               = useState(null);
+  const [detail, setDetail]                   = useState(null);
+  const [detailLoading, setDetailLoading]     = useState(false);
+  const [rejectReason, setRejectReason]       = useState("");
   const [subRejectReason, setSubRejectReason] = useState("");
   const [rejectingSubId, setRejectingSubId]   = useState(null);
-  const [msg, setMsg]                 = useState({ text: "", success: true });
-  const [filters, setFilters]         = useState({ status: "pending_approval", search: "" });
+  const [msg, setMsg]                         = useState({ text: "", success: true });
+  const [filters, setFilters]                 = useState({ status: "all", search: "" });
+  const [lightbox, setLightbox]               = useState(null); // url string
 
   const flash = (t, s = true) => {
     setMsg({ text: t, success: s });
@@ -38,11 +45,17 @@ const AdminCampaigns = () => {
   const fetchCampaigns = async () => {
     setLoading(true);
     try {
-      const params = { status: filters.status };
+      const params = {};
+      if (filters.status && filters.status !== "all") params.status = filters.status;
       if (filters.search) params.search = filters.search;
+      params.limit = 100; // get enough to sort client-side newest first
       const res = await API.get("/campaign/admin/all", { params });
-      setCampaigns(res.data.items || []);
-    } catch (e) {
+      // Sort newest first
+      const sorted = (res.data.items || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setCampaigns(sorted);
+    } catch {
       flash("❌ Failed to load campaigns.", false);
     }
     setLoading(false);
@@ -54,32 +67,47 @@ const AdminCampaigns = () => {
     setSelected(id);
     setDetailLoading(true);
     setDetail(null);
+    setRejectReason("");
+    setRejectingSubId(null);
+    setSubRejectReason("");
     try {
       const res = await API.get(`/campaign/admin/${id}`);
       setDetail(res.data);
-    } catch { flash("❌ Failed to load campaign detail.", false); }
+    } catch {
+      flash("❌ Failed to load campaign detail.", false);
+    }
     setDetailLoading(false);
   };
 
-  const closeDetail = () => { setSelected(null); setDetail(null); setRejectReason(""); };
+  const closeDetail = () => {
+    setSelected(null);
+    setDetail(null);
+    setRejectReason("");
+    setRejectingSubId(null);
+    setSubRejectReason("");
+  };
 
   const handleApprove = async (id) => {
     try {
       await API.put(`/campaign/admin/${id}/approve`);
-      flash("✅ Campaign approved. Owner can now fund it.");
+      flash("✅ Campaign approved and is now live.");
       closeDetail();
       fetchCampaigns();
-    } catch (e) { flash("❌ " + (e.response?.data?.message || "Failed."), false); }
+    } catch (e) {
+      flash("❌ " + (e.response?.data?.message || "Failed."), false);
+    }
   };
 
   const handleReject = async (id) => {
     if (!rejectReason.trim()) return flash("❌ Enter a rejection reason.", false);
     try {
       await API.put(`/campaign/admin/${id}/reject`, { reason: rejectReason });
-      flash("✅ Campaign rejected.");
+      flash("✅ Campaign rejected. Funds refunded to poster.");
       closeDetail();
       fetchCampaigns();
-    } catch (e) { flash("❌ " + (e.response?.data?.message || "Failed."), false); }
+    } catch (e) {
+      flash("❌ " + (e.response?.data?.message || "Failed."), false);
+    }
   };
 
   const handleSubReview = async (campaignId, subId, action) => {
@@ -94,42 +122,62 @@ const AdminCampaigns = () => {
       setSubRejectReason("");
       setRejectingSubId(null);
       openDetail(campaignId);
-    } catch (e) { flash("❌ " + (e.response?.data?.message || "Failed."), false); }
+    } catch (e) {
+      flash("❌ " + (e.response?.data?.message || "Failed."), false);
+    }
   };
 
-  const statuses = ["pending_approval", "draft", "active", "paused", "exhausted", "stopped", "rejected"];
+  const pendingCount = campaigns.filter((c) => c.status === "pending_approval").length;
 
   return (
     <div className="space-y-4 max-w-4xl">
-      <h2 className="text-lg font-extrabold text-gray-800">📋 Campaigns</h2>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-extrabold text-gray-800">📋 Campaigns</h2>
+        {pendingCount > 0 && filters.status !== "pending_approval" && (
+          <button
+            onClick={() => setFilters((p) => ({ ...p, status: "pending_approval" }))}
+            className="text-xs font-bold px-3 py-1.5 rounded-xl bg-yellow-100 text-yellow-700 border-2 border-yellow-300 animate-pulse"
+          >
+            ⏳ {pendingCount} awaiting review
+          </button>
+        )}
+      </div>
 
       {msg.text && (
-        <div className={`p-3 rounded-xl text-sm font-semibold text-center ${msg.success ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
+        <div className={`p-3 rounded-xl text-sm font-semibold text-center ${
+          msg.success ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+        }`}>
           {msg.text}
         </div>
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl shadow p-4 flex gap-3 flex-wrap">
-        <div className="flex gap-2 flex-wrap flex-1">
-          {statuses.map((s) => (
+      <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+        <div className="flex gap-2 flex-wrap">
+          {STATUSES.map((s) => (
             <button
               key={s}
               onClick={() => setFilters((p) => ({ ...p, status: s }))}
-              className={`text-xs font-bold px-3 py-1.5 rounded-xl border-2 transition ${
-                filters.status === s ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 text-gray-400"
+              className={`text-xs font-bold px-3 py-1.5 rounded-xl border-2 transition capitalize ${
+                filters.status === s
+                  ? "border-orange-500 bg-orange-50 text-orange-600"
+                  : "border-gray-200 text-gray-400 hover:border-gray-300"
               }`}
             >
-              {s.replace("_", " ")}
+              {s === "all" ? "🗂 All" : s.replace(/_/g, " ")}
             </button>
           ))}
         </div>
-        <input
-          value={filters.search}
-          onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
-          placeholder="Search title..."
-          className="border-2 border-gray-200 focus:border-orange-400 rounded-xl px-3 py-1.5 text-sm outline-none"
-        />
+        <div className="relative">
+          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input
+            value={filters.search}
+            onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+            placeholder="Search by title..."
+            className="w-full border-2 border-gray-200 focus:border-orange-400 rounded-xl pl-8 pr-4 py-2 text-sm outline-none"
+          />
+        </div>
       </div>
 
       {/* Campaign List */}
@@ -137,7 +185,10 @@ const AdminCampaigns = () => {
         {loading ? (
           <p className="text-center text-orange-500 animate-pulse font-bold py-10 text-sm">Loading...</p>
         ) : campaigns.length === 0 ? (
-          <p className="text-center text-gray-400 py-10 text-sm">No campaigns found.</p>
+          <div className="text-center py-12 space-y-2">
+            <i className="fas fa-inbox text-4xl text-gray-200"></i>
+            <p className="text-gray-400 text-sm">No campaigns found.</p>
+          </div>
         ) : (
           <div className="divide-y divide-gray-50">
             {campaigns.map((c) => (
@@ -153,63 +204,102 @@ const AdminCampaigns = () => {
                         by <span className="font-semibold">{c.poster?.fullName}</span>
                         {" · "}{c.category}{" · "}${Number(c.payPerTask).toFixed(3)}/task
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${STATUS_COLORS[c.status] || "bg-gray-100 text-gray-500"}`}>
-                          {c.status.replace("_", " ")}
+                          {c.status.replace(/_/g, " ")}
                         </span>
                         <span className="text-xs text-gray-400">
                           {c.approvedCount}/{c.maxEarners} done · ${Number(c.payoutBudget).toFixed(2)} budget
                         </span>
+                        <span className="text-xs text-gray-300">
+                          {new Date(c.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
+                      {c.status === "pending_approval" && (
+                        <p className="text-xs text-yellow-600 font-semibold mt-1">
+                          ⏳ Funds held · Awaiting your review
+                        </p>
+                      )}
+                      {c.status === "rejected" && c.adminRejectionReason && (
+                        <p className="text-xs text-red-500 mt-1 truncate">
+                          Rejected: {c.adminRejectionReason}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <button
                     onClick={() => selected === c._id ? closeDetail() : openDetail(c._id)}
-                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition shrink-0"
+                    className={`text-xs font-bold px-3 py-1.5 rounded-xl transition shrink-0 ${
+                      c.status === "pending_approval"
+                        ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300"
+                        : "bg-gray-100 text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+                    }`}
                   >
-                    {selected === c._id ? "Close" : "View"}
+                    {selected === c._id ? "Close" : c.status === "pending_approval" ? "Review" : "View"}
                   </button>
                 </div>
 
-                {/* Detail panel */}
+                {/* ── Detail Panel ── */}
                 {selected === c._id && (
                   <div className="mt-4 border-t border-gray-100 pt-4">
                     {detailLoading ? (
                       <p className="text-xs text-orange-500 animate-pulse font-bold">Loading detail...</p>
                     ) : detail ? (
                       <div className="space-y-4">
-                        {/* Campaign info */}
-                        <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
+
+                        {/* Campaign Info */}
+                        <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
                           <p className="font-bold text-gray-700">Campaign Info</p>
-                          <p className="text-gray-600">{detail.description}</p>
+                          <p className="text-gray-600 text-xs">{detail.description}</p>
+
                           {detail.instructions && (
                             <div className="bg-white rounded-lg p-3">
-                              <p className="text-xs font-bold text-gray-500 mb-1">Instructions</p>
+                              <p className="text-xs font-bold text-gray-500 mb-1">📋 Instructions</p>
                               <p className="text-gray-600 text-xs">{detail.instructions}</p>
                             </div>
                           )}
+
                           {detail.targetUrl && (
                             <a href={detail.targetUrl} target="_blank" rel="noopener noreferrer"
-                              className="text-xs text-blue-500 underline break-all">
-                              {detail.targetUrl}
+                              className="flex items-center gap-1.5 text-xs text-blue-500 font-semibold bg-blue-50 rounded-lg px-3 py-2 break-all">
+                              <i className="fas fa-link shrink-0"></i> {detail.targetUrl}
                             </a>
                           )}
+
+                          {/* Example images — clickable lightbox */}
                           {detail.exampleImageUrls?.length > 0 && (
-                            <div className="flex gap-2 flex-wrap mt-2">
-                              {detail.exampleImageUrls.map((url, i) => (
-                                <img key={i} src={url} alt={`example-${i}`}
-                                  className="w-20 h-20 object-cover rounded-lg border border-gray-200" />
-                              ))}
+                            <div>
+                              <p className="text-xs font-bold text-gray-500 mb-2">🖼 Example Images</p>
+                              <div className="flex gap-2 flex-wrap">
+                                {detail.exampleImageUrls.map((url, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => setLightbox(url)}
+                                    className="relative group"
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`example-${i}`}
+                                      className="w-20 h-20 object-cover rounded-xl border-2 border-gray-200 hover:border-orange-400 transition"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-xl transition flex items-center justify-center">
+                                      <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-sm transition"></i>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                           )}
-                          <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+
+                          {/* Financials grid */}
+                          <div className="grid grid-cols-3 gap-2 text-xs">
                             {[
-                              ["Pay/Task", `$${Number(detail.payPerTask).toFixed(3)}`],
-                              ["Max Earners", detail.maxEarners],
-                              ["Payout Budget", `$${Number(detail.payoutBudget).toFixed(2)}`],
-                              ["Platform Fee", `$${Number(detail.feeAmount).toFixed(2)} (${detail.platformFeePctAtCreate}%)`],
-                              ["Escrow Required", `$${Number(detail.escrowRequired).toFixed(2)}`],
-                              ["Posted", new Date(detail.createdAt).toLocaleDateString()],
+                              ["Pay/Task",       `$${Number(detail.payPerTask).toFixed(3)}`],
+                              ["Max Earners",    detail.maxEarners],
+                              ["Payout Budget",  `$${Number(detail.payoutBudget).toFixed(2)}`],
+                              ["Platform Fee",   `$${Number(detail.feeAmount).toFixed(2)} (${detail.platformFeePctAtCreate}%)`],
+                              ["Escrow Locked",  `$${Number(detail.escrowLocked ?? detail.escrowRequired).toFixed(2)}`],
+                              ["Posted",         new Date(detail.createdAt).toLocaleDateString()],
                             ].map(([k, v]) => (
                               <div key={k} className="bg-white rounded-lg p-2">
                                 <p className="text-gray-400">{k}</p>
@@ -217,19 +307,31 @@ const AdminCampaigns = () => {
                               </div>
                             ))}
                           </div>
+
+                          {/* Poster info */}
+                          <div className="bg-white rounded-lg p-3 flex items-center gap-3">
+                            <div className="bg-orange-100 rounded-full w-8 h-8 flex items-center justify-center shrink-0">
+                              <i className="fas fa-user text-orange-500 text-xs"></i>
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-gray-700">{detail.poster?.fullName}</p>
+                              <p className="text-[11px] text-gray-400">{detail.poster?.email}</p>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Admin actions for pending_approval */}
+                        {/* ── Admin Actions (pending_approval only) ── */}
                         {detail.status === "pending_approval" && (
                           <div className="space-y-3">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleApprove(detail._id)}
-                                className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl text-sm transition"
-                              >
-                                ✅ Approve Campaign
-                              </button>
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-yellow-700 font-semibold">
+                              💰 Funds already deducted from poster's wallet. Approving makes the campaign live immediately. Rejecting refunds the poster instantly.
                             </div>
+                            <button
+                              onClick={() => handleApprove(detail._id)}
+                              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-sm transition"
+                            >
+                              ✅ Approve & Go Live
+                            </button>
                             <div className="space-y-2">
                               <textarea
                                 value={rejectReason}
@@ -240,21 +342,32 @@ const AdminCampaigns = () => {
                               />
                               <button
                                 onClick={() => handleReject(detail._id)}
-                                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl text-sm transition"
+                                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl text-sm transition"
                               >
-                                ❌ Reject Campaign
+                                ❌ Reject & Refund Poster
                               </button>
                             </div>
                           </div>
                         )}
 
-                        {/* Submissions */}
+                        {/* ── Submissions ── */}
                         {detail.submissions?.length > 0 && (
                           <div>
-                            <p className="font-bold text-gray-700 text-sm mb-2">
-                              Submissions ({detail.submissions.length})
-                            </p>
-                            <div className="space-y-2 max-h-96 overflow-y-auto">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="font-bold text-gray-700 text-sm">
+                                Submissions ({detail.submissions.length})
+                              </p>
+                              <div className="flex gap-2 text-xs">
+                                <span className="bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full">
+                                  {detail.submissions.filter((s) => s.status === "pending").length} pending
+                                </span>
+                                <span className="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">
+                                  {detail.submissions.filter((s) => ["approved","auto_approved"].includes(s.status)).length} approved
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
                               {detail.submissions.map((s) => (
                                 <div key={s._id} className="bg-gray-50 rounded-xl p-3 space-y-2">
                                   <div className="flex items-center justify-between gap-2">
@@ -267,10 +380,15 @@ const AdminCampaigns = () => {
                                         {new Date(s.submittedAt).toLocaleString()}
                                       </p>
                                     </div>
-                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[s.status] || "bg-gray-100 text-gray-500"}`}>
-                                      {s.status.replace("_", " ")}
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                                      s.status === "pending"       ? "bg-yellow-100 text-yellow-700" :
+                                      s.status === "approved" || s.status === "auto_approved" ? "bg-green-100 text-green-700" :
+                                      "bg-red-100 text-red-600"
+                                    }`}>
+                                      {s.status.replace(/_/g, " ")}
                                     </span>
                                   </div>
+
                                   {s.proofText && (
                                     <p className="text-xs bg-white rounded-lg p-2 text-gray-600">{s.proofText}</p>
                                   )}
@@ -280,19 +398,38 @@ const AdminCampaigns = () => {
                                       {s.proofUrl}
                                     </a>
                                   )}
+
+                                  {/* Proof images — clickable lightbox */}
                                   {s.proofImageUrls?.length > 0 && (
-                                    <div className="flex gap-2 flex-wrap">
-                                      {s.proofImageUrls.map((url, i) => (
-                                        <img key={i} src={url} alt={`proof-${i}`}
-                                          className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
-                                      ))}
+                                    <div>
+                                      <p className="text-[11px] font-bold text-gray-400 mb-1">Proof Images</p>
+                                      <div className="flex gap-2 flex-wrap">
+                                        {s.proofImageUrls.map((url, i) => (
+                                          <button
+                                            key={i}
+                                            onClick={() => setLightbox(url)}
+                                            className="relative group"
+                                          >
+                                            <img
+                                              src={url}
+                                              alt={`proof-${i}`}
+                                              className="w-16 h-16 object-cover rounded-lg border-2 border-gray-200 hover:border-orange-400 transition"
+                                            />
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 rounded-lg transition flex items-center justify-center">
+                                              <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-xs transition"></i>
+                                            </div>
+                                          </button>
+                                        ))}
+                                      </div>
                                     </div>
                                   )}
+
                                   {s.rejectionReason && (
                                     <p className="text-xs text-red-500 font-semibold bg-red-50 rounded-lg px-2 py-1">
                                       Rejected: {s.rejectionReason}
                                     </p>
                                   )}
+
                                   {s.status === "pending" && (
                                     <div className="space-y-2">
                                       <div className="flex gap-2">
@@ -341,6 +478,37 @@ const AdminCampaigns = () => {
           </div>
         )}
       </div>
+
+      {/* ── Lightbox ── */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <div className="relative max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setLightbox(null)}
+              className="absolute -top-3 -right-3 bg-white text-gray-700 hover:text-red-500 rounded-full w-8 h-8 flex items-center justify-center shadow-lg font-bold text-sm z-10 transition"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+            <img
+              src={lightbox}
+              alt="preview"
+              className="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
+            />
+            <a
+              href={lightbox}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-center gap-2 text-white/70 hover:text-white text-xs font-semibold transition"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <i className="fas fa-external-link-alt"></i> Open full size
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
