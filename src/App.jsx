@@ -6,6 +6,7 @@ import { ReferralProvider } from "./Context/ReferralContext";
 import { RewardCodeProvider } from "./Context/RewardCodeContext";
 import { ChatProvider } from "./Context/ChatContext";
 import { CampaignProvider } from "./Context/CampaignContext";
+import { ProofBadgeProvider } from "./Context/ProofBadgeContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminRoute from "./Components/AdminRoute";
 
@@ -37,56 +38,60 @@ import AdminRewardCodes from "./Pages/Admin/AdminRewardCodes";
 import AdminWithdrawals from "./Pages/Admin/AdminWithdrawals";
 import AdminPermissions from "./Pages/Admin/AdminPermissions";
 import AdminCampaigns from "./Pages/Admin/AdminCampaigns";
+import AdminSubmittedProofs from "./Pages/Admin/AdminSubmittedProofs";
 
 const App = () => (
   <AuthProvider>
     <WalletProvider>
       <CampaignProvider>
-        <ReferralProvider>
-          <RewardCodeProvider>
-            <ChatProvider>
-              <Router>
-                <Routes>
-                  {/* Public */}
-                  <Route path="/" element={<Navigate to="/login" />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/verify-email" element={<VerifyEmail />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
+        <ProofBadgeProvider>
+          <ReferralProvider>
+            <RewardCodeProvider>
+              <ChatProvider>
+                <Router>
+                  <Routes>
+                    {/* Public */}
+                    <Route path="/" element={<Navigate to="/login" />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/verify-email" element={<VerifyEmail />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                  {/* User */}
-                  <Route path="/home"     element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                  <Route path="/earn"     element={<ProtectedRoute><Earn /></ProtectedRoute>} />
-                  <Route path="/wallet"   element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-                  <Route path="/profile"  element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                  <Route path="/chat"     element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-                  <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
-                  <Route path="/reward"   element={<ProtectedRoute><Reward /></ProtectedRoute>} />
-                  <Route path="/post-task"        element={<ProtectedRoute><PostTask /></ProtectedRoute>} />
-                  <Route path="/task-status"      element={<ProtectedRoute><TaskStatus /></ProtectedRoute>} />
-                  <Route path="/campaigns"        element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
-                  <Route path="/submit-proof/:id" element={<ProtectedRoute><SubmitProof /></ProtectedRoute>} />
+                    {/* User */}
+                    <Route path="/home"     element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                    <Route path="/earn"     element={<ProtectedRoute><Earn /></ProtectedRoute>} />
+                    <Route path="/wallet"   element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+                    <Route path="/profile"  element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                    <Route path="/chat"     element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                    <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
+                    <Route path="/reward"   element={<ProtectedRoute><Reward /></ProtectedRoute>} />
+                    <Route path="/post-task"        element={<ProtectedRoute><PostTask /></ProtectedRoute>} />
+                    <Route path="/task-status"      element={<ProtectedRoute><TaskStatus /></ProtectedRoute>} />
+                    <Route path="/campaigns"        element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+                    <Route path="/submit-proof/:id" element={<ProtectedRoute><SubmitProof /></ProtectedRoute>} />
 
-                  {/* Admin */}
-                  <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="users"         element={<AdminUsers />} />
-                    <Route path="settings"      element={<AdminSettings />} />
-                    <Route path="badges"        element={<AdminBadges />} />
-                    <Route path="announcements" element={<AdminAnnouncements />} />
-                    <Route path="polls"         element={<AdminPolls />} />
-                    <Route path="rewards"       element={<AdminRewardCodes />} />
-                    <Route path="withdrawals"   element={<AdminWithdrawals />} />
-                    <Route path="permissions"   element={<AdminPermissions />} />
-                    <Route path="campaigns"     element={<AdminCampaigns />} />
-                  </Route>
+                    {/* Admin */}
+                    <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="users"             element={<AdminUsers />} />
+                      <Route path="settings"          element={<AdminSettings />} />
+                      <Route path="badges"            element={<AdminBadges />} />
+                      <Route path="announcements"     element={<AdminAnnouncements />} />
+                      <Route path="polls"             element={<AdminPolls />} />
+                      <Route path="rewards"           element={<AdminRewardCodes />} />
+                      <Route path="withdrawals"       element={<AdminWithdrawals />} />
+                      <Route path="permissions"       element={<AdminPermissions />} />
+                      <Route path="campaigns"         element={<AdminCampaigns />} />
+                      <Route path="submitted-proofs"  element={<AdminSubmittedProofs />} />
+                    </Route>
 
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Router>
-            </ChatProvider>
-          </RewardCodeProvider>
-        </ReferralProvider>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Router>
+              </ChatProvider>
+            </RewardCodeProvider>
+          </ReferralProvider>
+        </ProofBadgeProvider>
       </CampaignProvider>
     </WalletProvider>
   </AuthProvider>
