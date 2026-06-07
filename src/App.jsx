@@ -21,6 +21,9 @@ import Reward from "./Pages/Reward";
 import VerifyEmail from "./Pages/VerifyEmail";
 import ForgotPassword from "./Pages/Forgotpassword";
 import NotFound from "./Pages/NotFound";
+import PostTask from "./Pages/PostTask";
+import TaskStatus from "./Pages/TaskStatus";
+
 
 import AdminLayout from "./Pages/Admin/AdminLayout";
 import AdminDashboard from "./Pages/Admin/AdminDashboard";
@@ -32,6 +35,8 @@ import AdminPolls from "./Pages/Admin/AdminPolls";
 import AdminRewardCodes from "./Pages/Admin/AdminRewardCodes";
 import AdminWithdrawals from "./Pages/Admin/AdminWithdrawals";
 import AdminPermissions from "./Pages/Admin/AdminPermissions";
+import AdminCampaigns from "./Pages/Admin/AdminCampaigns";
+
 
 const App = () => (
   <AuthProvider>
@@ -56,6 +61,9 @@ const App = () => (
                 <Route path="/chat"     element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
                 <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
                 <Route path="/reward"   element={<ProtectedRoute><Reward /></ProtectedRoute>} />
+                <Route path="/post-task"   element={<ProtectedRoute><PostTask /></ProtectedRoute>} />
+                <Route path="/task-status" element={<ProtectedRoute><TaskStatus /></ProtectedRoute>} />
+
 
                 {/* Admin */}
                 <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
@@ -68,6 +76,7 @@ const App = () => (
                   <Route path="rewards"       element={<AdminRewardCodes />} />
                   <Route path="withdrawals"   element={<AdminWithdrawals />} />
                   <Route path="permissions"   element={<AdminPermissions />} />
+                  <Route path="campaigns" element={<AdminCampaigns />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
