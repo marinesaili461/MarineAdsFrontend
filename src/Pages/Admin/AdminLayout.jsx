@@ -26,7 +26,7 @@ const ALL_SECTIONS = [
     key: "campaigns",
     label: "Campaigns",
     icon: "fa-clipboard-list",
-    to: "/admin/AdminCampaigns",
+    to: "/admin/campaigns",
   },
   {
     key: "badges",
