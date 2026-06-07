@@ -1,9 +1,11 @@
 import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { CampaignContext } from "../Context/CampaignContext";
+import { SupportBadgeContext } from "../Context/SupportBadgeContext";
 
 const BottomNav = () => {
   const { badge } = useContext(CampaignContext);
+  const { userUnread, formatBadge } = useContext(SupportBadgeContext);
   const base   = "flex flex-col items-center justify-center flex-1 py-2 text-white transition-all";
   const active = "bg-green-500 rounded-xl mx-1";
 
@@ -29,6 +31,18 @@ const BottomNav = () => {
       <NavLink to="/wallet" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
         <i className="fas fa-wallet text-2xl"></i>
         <span className="text-xs font-semibold mt-0.5">Wallet</span>
+      </NavLink>
+
+      <NavLink to="/support" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
+        <div className="relative">
+          <i className="fas fa-headset text-2xl"></i>
+          {userUnread > 0 && (
+            <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 shadow-md animate-bounce">
+              {formatBadge(userUnread)}
+            </span>
+          )}
+        </div>
+        <span className="text-xs font-semibold mt-0.5">Support</span>
       </NavLink>
 
       <NavLink to="/profile" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
