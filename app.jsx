@@ -18,6 +18,10 @@ import Reward from "./Pages/Reward";
 import VerifyEmail from "./Pages/VerifyEmail";
 import ForgotPassword from "./Pages/Forgotpassword";
 import NotFound from "./Pages/NotFound";
+import PostTask from "./Pages/PostTask";
+import TaskStatus from "./Pages/TaskStatus";
+import AdminCampaigns from "./Pages/Admin/AdminCampaigns";
+
 
 const App = () => (
   <AuthProvider>
@@ -40,6 +44,9 @@ const App = () => (
                 <Route path="/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
                 <Route path="/reward" element={<ProtectedRoute><Reward /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
+                <Route path="/post-task"   element={<ProtectedRoute><PostTask /></ProtectedRoute>} />
+                <Route path="/task-status" element={<ProtectedRoute><TaskStatus /></ProtectedRoute>} />
+                <Route path="campaigns" element={<AdminCampaigns />} />
               </Routes>
             </Router>
           </ChatProvider>
