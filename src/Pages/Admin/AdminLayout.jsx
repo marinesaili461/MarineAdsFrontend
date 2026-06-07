@@ -27,6 +27,7 @@ const AdminLayout = () => {
     },
     { key: "badges",         label: "Badges",            icon: "fa-medal",          to: "/admin/badges" },
     { key: "announcements",  label: "Announcements",     icon: "fa-bullhorn",       to: "/admin/announcements" },
+    { key: "faq", label: "FAQ", icon: "fa-circle-question", to: "/admin/faq" },
     { key: "polls",          label: "Polls",             icon: "fa-poll",           to: "/admin/polls" },
     { key: "rewards",        label: "Reward Codes",      icon: "fa-gift",           to: "/admin/rewards" },
     { key: "withdrawals",    label: "Withdrawals",       icon: "fa-money-bill",     to: "/admin/withdrawals" },
