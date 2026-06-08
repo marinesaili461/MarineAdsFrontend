@@ -180,7 +180,7 @@ function MessageBubble({ msg, isMe, isAdmin, userId, onReact, onDelete, onReply 
           >
             {msg.type === "image" && msg.imageUrl ? (
               <img
-                src={`${import.meta.env.VITE_API_BASE || "https://marinecashbackend.onrender.com"}${msg.imageUrl}`}
+                src={msg.imageUrl}
                 alt="shared"
                 className="max-w-[200px] max-h-[200px] rounded-xl object-cover"
               />
