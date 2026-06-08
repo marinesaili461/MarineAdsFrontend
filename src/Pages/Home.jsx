@@ -1,13 +1,25 @@
 // src/Pages/Home.jsx
 import React, { useContext, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Context/AuthContext";
 import { WalletContext } from "../Context/WalletContext";
 import { RewardCodeContext } from "../Context/RewardCodeContext";
 import { SupportBadgeContext } from "../Context/SupportBadgeContext";
+import { AnnouncementBadgeContext } from "../Context/AnnouncementBadgeContext";
 import API from "../api/axios";
 import TopBar from "../Components/TopBar";
 import BottomNav from "../Components/BottomNav";
+
+const TAG_BG = {
+  general:   "bg-blue-100 text-blue-600",
+  important: "bg-red-100 text-red-600",
+  hot:       "bg-orange-100 text-orange-600",
+  new:       "bg-green-100 text-green-600",
+  warning:   "bg-yellow-100 text-yellow-700",
+};
+const TAG_LABEL = {
+  general: "📢", important: "⚠️", hot: "🔥", new: "🎉", warning: "🚨",
+};
 
 // Returns how many hours:minutes until midnight
 const timeUntilMidnight = () => {
@@ -20,11 +32,69 @@ const timeUntilMidnight = () => {
   return `${h}h ${m}m`;
 };
 
+const AnnouncementTeaser = ({ unread }) => {
+  const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    API.get("/announcements")
+      .then(res => setItems(res.data.slice(0, 2)))
+      .catch(() => {});
+  }, []);
+
+  return (
+    <section className="bg-white shadow mx-2 my-2 p-4 rounded-xl">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <h2 className="font-semibold text-gray-700">📢 Announcements</h2>
+          {unread > 0 && (
+            <span className="min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 animate-bounce shadow">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={() => navigate("/announcements")}
+          className="text-xs text-orange-500 font-bold hover:underline"
+        >
+          See all →
+        </button>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-xs text-gray-400">No announcements yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {items.map(item => (
+            <div
+              key={item._id}
+              onClick={() => navigate("/announcements")}
+              className="flex items-start gap-2 cursor-pointer hover:bg-orange-50 rounded-xl p-1.5 transition"
+            >
+              <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0 ${TAG_BG[item.tag] || TAG_BG.general}`}>
+                {TAG_LABEL[item.tag] || "📢"}
+              </span>
+              <div className="min-w-0">
+                {item.title && (
+                  <p className="text-xs font-bold text-gray-700 truncate">{item.title}</p>
+                )}
+                <p className="text-xs text-gray-500 truncate">{item.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
 export default function Home() {
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const { wallet, fetchWallet } = useContext(WalletContext);
+  const { fetchWallet } = useContext(WalletContext);
   const { redeemCode } = useContext(RewardCodeContext);
   const { userUnread, formatBadge } = useContext(SupportBadgeContext);
+  const { unread: announcementUnread } = useContext(AnnouncementBadgeContext);
 
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
@@ -37,17 +107,18 @@ export default function Home() {
   const [countdown, setCountdown] = useState("");
 
   const menuItems = [
-    { icon: "fa-coins",           color: "text-green-500",  label: "Earn",          to: "/earn" },
-    { icon: "fa-wallet",          color: "text-green-500",  label: "Wallet",        to: "/wallet" },
-    { icon: "fa-users",           color: "text-green-500",  label: "Referrals",     to: "/referral" },
-    { icon: "fa-user",            color: "text-green-500",  label: "Profile",       to: "/profile" },
-    { icon: "fa-whatsapp fab",    color: "text-green-500",  label: "Join Group",    to: "https://chat.whatsapp.com/EUQiHGRx8IqEFWZd9NoUML", external: true },
-    { icon: "fa-comments",        color: "text-green-500",  label: "Chatroom",      to: "/chat" },
-    { icon: "fa-circle-question", color: "text-green-500",  label: "FAQ",           to: "/faq" },
-    { icon: "fa-headset",         color: "text-green-500",  label: "Support",       to: "/support", badge: userUnread },
-    { icon: "fa-plus-circle",     color: "text-green-500",  label: "Post Task",     to: "/post-task" },
-    { icon: "fa-bell",            color: "text-green-500",  label: "Notifications", to: "/notifications" },
-    { icon: "fa-crown",           color: "text-green-500",  label: "Top Earners",   to: "/top-earners" },
+    { icon: "fa-coins",           color: "text-green-500", label: "Earn",          to: "/earn" },
+    { icon: "fa-wallet",          color: "text-green-500", label: "Wallet",        to: "/wallet" },
+    { icon: "fa-users",           color: "text-green-500", label: "Referrals",     to: "/referral" },
+    { icon: "fa-user",            color: "text-green-500", label: "Profile",       to: "/profile" },
+    { icon: "fa-whatsapp fab",    color: "text-green-500", label: "Join Group",    to: "https://chat.whatsapp.com/EUQiHGRx8IqEFWZd9NoUML", external: true },
+    { icon: "fa-comments",        color: "text-green-500", label: "Chatroom",      to: "/chat" },
+    { icon: "fa-circle-question", color: "text-green-500", label: "FAQ",           to: "/faq" },
+    { icon: "fa-headset",         color: "text-green-500", label: "Support",       to: "/support",       badge: userUnread },
+    { icon: "fa-bullhorn",        color: "text-green-500", label: "Announcements", to: "/announcements", badge: announcementUnread },
+    { icon: "fa-plus-circle",     color: "text-green-500", label: "Post Task",     to: "/post-task" },
+    { icon: "fa-bell",            color: "text-green-500", label: "Notifications", to: "/notifications" },
+    { icon: "fa-crown",           color: "text-green-500", label: "Top Earners",   to: "/top-earners" },
   ];
 
   // Load daily check-in settings + whether user already claimed today
@@ -120,7 +191,9 @@ export default function Home() {
         <div>
           <p className="font-semibold text-gray-700">Daily Check-in</p>
           {alreadyClaimed ? (
-            <p className="text-xs text-gray-400">Next claim in <span className="font-bold text-orange-500">{countdown}</span></p>
+            <p className="text-xs text-gray-400">
+              Next claim in <span className="font-bold text-orange-500">{countdown}</span>
+            </p>
           ) : (
             <p className="text-xs text-gray-400">
               {checkInEnabled && checkInAmount != null
@@ -192,16 +265,8 @@ export default function Home() {
         )}
       </main>
 
-      {/* ── Announcements ── */}
-      <section className="bg-white shadow mx-2 my-2 p-4 rounded-xl">
-        <h2 className="font-semibold text-gray-700 mb-2">📢 Announcements</h2>
-        <ul className="space-y-1 list-disc pl-5 text-sm text-gray-600">
-          <li>✅ New tasks available in Earn Section.</li>
-          <li>💰 Do simple tasks and get paid.</li>
-          <li>🏦 Withdrawals processed every Friday.</li>
-          <li>⚠️ Minimum withdrawal is $5.</li>
-        </ul>
-      </section>
+      {/* ── Announcements Teaser ── */}
+      <AnnouncementTeaser unread={announcementUnread} />
 
       {/* ── Reward Code ── */}
       <section className="bg-white shadow mx-2 mt-2 p-4 rounded-xl">
@@ -226,4 +291,4 @@ export default function Home() {
       <BottomNav />
     </div>
   );
-}
+                              }
