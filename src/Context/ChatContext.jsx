@@ -109,16 +109,15 @@ export const ChatProvider = ({ children }) => {
     }
   }, [user]);
 
-  // ── Send image (with optional replyToId) ─────────────────────────
+  // ── Send image — let browser set Content-Type with boundary ──────
   const sendImage = useCallback(async (file, replyToId = null) => {
     if (!file || !user) return null;
     const fd = new FormData();
     fd.append("image", file);
     if (replyToId) fd.append("replyToId", replyToId);
     try {
-      const res = await API.post("/chat/message/image", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // No manual Content-Type header — browser sets it with the correct boundary
+      const res = await API.post("/chat/message/image", fd);
       return res.data;
     } catch (err) {
       throw new Error(err.response?.data?.error || "Failed to send image.");
