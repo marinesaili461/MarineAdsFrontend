@@ -4,26 +4,26 @@ import axios from "axios";
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "https://marinecashbackend.onrender.com/api",
   timeout: 10000,
-  headers: {
-    "Cache-Control": "no-cache",
-  },
 });
 
-// Wipe Content-Type from axios's internal default slots so they can never
-// override the multipart/form-data boundary the browser needs to set itself.
+// Nuke Content-Type from all default header slots at creation time
 delete API.defaults.headers.common["Content-Type"];
 delete API.defaults.headers.post["Content-Type"];
 delete API.defaults.headers.patch["Content-Type"];
+delete API.defaults.headers.put["Content-Type"];
 
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
 
-    // For FormData, remove any Content-Type so the browser sets
-    // multipart/form-data with the correct boundary automatically.
     if (config.data instanceof FormData) {
-      delete config.headers["Content-Type"];
+      // Setting to undefined (not delete) ensures axios skips it entirely
+      // and lets the browser set multipart/form-data with the correct boundary
+      config.headers["Content-Type"] = undefined;
+    } else {
+      // Explicitly set JSON for non-FormData requests
+      config.headers["Content-Type"] = "application/json";
     }
 
     return config;
