@@ -2,7 +2,7 @@
 export default function BadgeIcon({ badge, size = 16 }) {
   if (!badge?.imageUrl || badge.hidden) return null;
   return (
-    <span title={badge.name} className="inline-flex items-center ml-0.5 align-middle">
+    <span title={badge.name} className="inline-flex items-center ml-0.3 align-middle">
       <img
         src={badge.imageUrl}
         alt={badge.name}
