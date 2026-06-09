@@ -2,21 +2,13 @@
 export default function BadgeIcon({ badge, size = 16 }) {
   if (!badge?.imageUrl || badge.hidden) return null;
   return (
-    <span
-      title={badge.name}
-      style={{ display: "inline-flex", alignItems: "center", marginLeft: "3px", verticalAlign: "middle" }}
-    >
+    <span title={badge.name} className="inline-flex items-center ml-0.5 align-middle">
       <img
         src={badge.imageUrl}
         alt={badge.name}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          border: "1.5px solid #fff",
-          objectFit: "cover",
-          display: "inline-block",
-        }}
+        width={size}
+        height={size}
+        className="rounded-full border-2 border-white object-cover"
       />
     </span>
   );
