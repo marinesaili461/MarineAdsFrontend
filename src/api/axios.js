@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://marinecashbackend.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://mar1nepanel.onrender.com",
   timeout: 10000,
 });
 
