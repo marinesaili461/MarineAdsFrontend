@@ -5,7 +5,7 @@ import { AuthContext } from "../Context/AuthContext";
 const Login = () => {
   const { login } = useContext(AuthContext);
   const navigate  = useNavigate();
-  const [form, setForm]     = useState({ phone: "", password: "" });
+  const [form, setForm]     = useState({ email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
   const [msg, setMsg]       = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ const Login = () => {
       const role = res.user?.role;
       navigate(["admin","superadmin"].includes(role) ? "/admin" : "/home");
     } catch (err) {
-      setMsg(err.response?.data?.message || "Invalid phone or password.");
+      setMsg(err.response?.data?.message || "Invalid email or password.");
     }
     setLoading(false);
   };
@@ -35,7 +35,7 @@ const Login = () => {
             <i className="fas fa-rectangle-ad text-white text-xl"></i>
           </div>
           <h1 className="text-2xl font-extrabold text-white">
-            Marine<span style={{ color: "#22d3ee" }}>Ads</span>
+            Marine<span style={{ color: "#22d3ee" }}>Panel</span>
           </h1>
           <p className="text-gray-400 text-sm mt-1">Sign in to your account</p>
         </div>
@@ -51,11 +51,11 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-400">Phone Number</label>
+              <label className="text-xs font-semibold text-gray-400">Email</label>
               <input
-                type="tel" required placeholder="e.g. 0712345678"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                type="email" required placeholder="you@example.com"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full mt-1 px-4 py-3 rounded-xl text-sm text-white outline-none transition border border-white/10 focus:border-cyan-500 placeholder-gray-600"
                 style={{ background: "rgba(255,255,255,0.05)" }}
               />
