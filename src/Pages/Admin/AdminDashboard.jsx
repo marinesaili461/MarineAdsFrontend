@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import API from "../../api/axios";
 
-const StatCard = ({ icon, label, value, color }) => (
-  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
-    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
+const Stat = ({ icon, label, value, color }) => (
+  <div className="rounded-2xl p-4 border border-white/10 flex items-center gap-3"
+    style={{ background: "rgba(255,255,255,0.04)" }}>
+    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
       <i className={`fas ${icon} text-white text-sm`}></i>
     </div>
     <div>
@@ -13,40 +15,55 @@ const StatCard = ({ icon, label, value, color }) => (
 );
 
 const AdminDashboard = () => {
-  const users    = JSON.parse(localStorage.getItem("mp_users")    || "[]");
-  const deposits = JSON.parse(localStorage.getItem("mp_deposits") || "[]");
-  const totalDeposited = deposits.reduce((s, d) => s + Number(d.amount), 0);
-  const pending  = deposits.filter((d) => d.status === "pending").length;
+  const [deposits, setDeposits] = useState([]);
+  const [users,    setUsers]    = useState([]);
+
+  useEffect(() => {
+    API.get("/wallet/admin/deposits").then(r => setDeposits(r.data)).catch(() => {});
+    API.get("/auth/users").then(r => setUsers(r.data)).catch(() => {});
+  }, []);
+
+  const pending   = deposits.filter(d => d.status === "pending").length;
+  const totalKES  = deposits.filter(d => d.status === "completed").reduce((s, d) => s + d.amount, 0);
 
   return (
-    <div className="space-y-5" style={{ fontFamily: "Poppins, sans-serif" }}>
+    <div className="space-y-5" style={{ fontFamily: "Poppins,sans-serif" }}>
       <h2 className="text-lg font-extrabold text-white">Overview</h2>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon="fa-users"       label="Total Users"     value={users.length}                       color="bg-blue-600" />
-        <StatCard icon="fa-wallet"      label="Deposit Requests" value={deposits.length}                   color="bg-purple-600" />
-        <StatCard icon="fa-clock"       label="Pending"         value={pending}                            color="bg-yellow-600" />
-        <StatCard icon="fa-coins"       label="Total KES"       value={`${totalDeposited.toLocaleString()}`} color="bg-green-600" />
+        <Stat icon="fa-users"       label="Users"            value={users.length}              color="bg-blue-600" />
+        <Stat icon="fa-wallet"      label="Total Deposits"   value={deposits.length}           color="bg-purple-600" />
+        <Stat icon="fa-clock"       label="Pending"          value={pending}                   color="bg-yellow-600" />
+        <Stat icon="fa-coins"       label="KES Approved"     value={totalKES.toLocaleString()} color="bg-green-600" />
       </div>
 
-      {/* RECENT DEPOSITS */}
       <div>
         <h3 className="text-sm font-bold text-white mb-3">Recent Deposit Requests</h3>
-        {deposits.length === 0
-          ? <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center text-gray-500 text-sm">No deposits yet</div>
-          : deposits.slice(-5).reverse().map((d) => (
-            <div key={d.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between mb-2">
+        {deposits.length === 0 ? (
+          <div className="rounded-2xl p-6 text-center border border-white/10 text-gray-500 text-sm"
+            style={{ background: "rgba(255,255,255,0.03)" }}>
+            No deposits yet
+          </div>
+        ) : (
+          deposits.slice(0,5).map((d) => (
+            <div key={d._id} className="flex items-center justify-between rounded-2xl p-4 border border-white/10 mb-2"
+              style={{ background: "rgba(255,255,255,0.04)" }}>
               <div>
-                <p className="text-white text-sm font-semibold">{d.userName}</p>
-                <p className="text-gray-500 text-xs">{d.mpesaPhone} · {new Date(d.date).toLocaleDateString()}</p>
+                <p className="text-white text-sm font-semibold">{d.user?.fullName}</p>
+                <p className="text-gray-500 text-xs">{d.meta?.mpesaPhone} · {new Date(d.createdAt).toLocaleDateString()}</p>
               </div>
               <div className="text-right">
-                <p className="text-cyan-400 font-extrabold">KES {Number(d.amount).toLocaleString()}</p>
-                <span className="text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-lg font-semibold">Pending</span>
+                <p className="font-extrabold" style={{ color: "#22d3ee" }}>KES {Number(d.amount).toLocaleString()}</p>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${
+                  d.status === "completed" ? "text-green-400 bg-green-500/10 border-green-500/20"
+                  : d.status === "failed"  ? "text-red-400 bg-red-500/10 border-red-500/20"
+                  : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20"}`}>
+                  {d.status}
+                </span>
               </div>
             </div>
           ))
-        }
+        )}
       </div>
     </div>
   );
