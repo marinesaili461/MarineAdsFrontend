@@ -30,7 +30,7 @@ const UserLayout = () => {
             <i className="fas fa-rectangle-ad text-white text-xs"></i>
           </div>
           <span className="font-extrabold text-white text-sm">
-            Marine<span style={{ color: "#22d3ee" }}>Ads</span>
+            Marine<span style={{ color: "#22d3ee" }}>Panel</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
