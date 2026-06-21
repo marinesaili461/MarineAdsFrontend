@@ -41,7 +41,7 @@ const Deposit = () => {
     if (!form.amount) return "Enter an amount.";
     if (Number(form.amount) < 5) return "Minimum deposit is $5.";
 
-    if (method === "mpesa" && !form.mpesaPhone) return "Enter the M-Pesa phone number used.";
+    if (method === "mpesa" && !form.mpesaPhone) return "Enter your M-Pesa phone number.";
 
     if (method === "visa") {
       if (!form.cardNumber || form.cardNumber.replace(/\s/g, "").length < 12) return "Enter a valid card number.";
@@ -52,7 +52,7 @@ const Deposit = () => {
 
     if (method === "bank") {
       if (!form.accountName) return "Enter the account holder name.";
-      if (!form.accountNumber) return "Enter the account number used for the transfer.";
+      if (!form.accountNumber) return "Enter your bank account number.";
     }
 
     return "";
@@ -87,7 +87,7 @@ const Deposit = () => {
     const rows =
       method === "mpesa" ? [["M-Pesa Phone", txn?.form?.mpesaPhone]] :
       method === "visa"  ? [["Card", `•••• ${txn?.form?.cardNumber?.slice(-4)}`]] :
-      [["Account", txn?.form?.accountNumber], ["Reference", txn?.form?.bankName || "—"]];
+      [["Account", txn?.form?.accountNumber], ["Bank", txn?.form?.bankName || "—"]];
 
     return (
       <div className="flex flex-col items-center text-center py-8" style={{ fontFamily: "Poppins,sans-serif" }}>
@@ -95,11 +95,11 @@ const Deposit = () => {
           style={{ background: "rgba(34,197,94,0.1)" }}>
           <i className="fas fa-check text-green-400 text-3xl"></i>
         </div>
-        <h2 className="text-xl font-extrabold text-white mb-1">Request Sent!</h2>
-        <p className="text-gray-400 text-sm mb-5">Admin will verify and credit your wallet.</p>
+        <h2 className="text-xl font-extrabold text-white mb-1">Deposit Processing</h2>
+        <p className="text-gray-400 text-sm mb-5">Your deposit is being processed automatically and will reflect in your wallet shortly.</p>
         <div className="rounded-2xl p-5 border border-white/10 w-full max-w-xs text-left space-y-3"
           style={{ background: "rgba(255,255,255,0.04)" }}>
-          {[...rows, ["Amount", `$${Number(txn?.amount).toLocaleString()}`], ["Status", "Pending"]].map(([l, v]) => (
+          {[...rows, ["Amount", `$${Number(txn?.amount).toLocaleString()}`], ["Status", "Processing"]].map(([l, v]) => (
             <div key={l} className="flex justify-between text-sm">
               <span className="text-gray-500">{l}</span>
               <span className={`font-semibold ${l === "Status" ? "text-yellow-400" : l === "Amount" ? "text-cyan-400" : "text-white"}`}>{v}</span>
@@ -117,7 +117,7 @@ const Deposit = () => {
     <div className="py-1 space-y-5" style={{ fontFamily: "Poppins,sans-serif" }}>
       <div>
         <h2 className="text-xl font-extrabold text-white">Deposit Funds</h2>
-        <p className="text-gray-500 text-xs mt-0.5">Top up your MarineAds wallet (USD)</p>
+        <p className="text-gray-500 text-xs mt-0.5">Top up your Marine Panel wallet (USD)</p>
       </div>
 
       {/* METHOD TABS */}
@@ -136,28 +136,25 @@ const Deposit = () => {
         ))}
       </div>
 
-      {/* METHOD-SPECIFIC INSTRUCTIONS */}
+      {/* METHOD-SPECIFIC NOTE */}
       {method === "mpesa" && (
-        <div className="rounded-2xl p-4 border border-green-500/20" style={{ background: "rgba(34,197,94,0.06)" }}>
-          <p className="text-green-400 font-bold text-sm mb-2"><i className="fas fa-mobile-screen-button mr-2"></i>Payment Steps</p>
-          <ol className="text-xs text-gray-400 space-y-1.5 list-decimal list-inside">
-            <li>Open M-Pesa on your Safaricom line</li>
-            <li>Send money to <span className="text-white font-bold">0712 345 678</span> (MarineAds)</li>
-            <li>Enter that same phone number + amount below</li>
-            <li>We verify and credit your wallet (usually &lt; 1hr)</li>
-          </ol>
+        <div className="rounded-2xl p-4 border border-green-500/20 flex items-start gap-2.5" style={{ background: "rgba(34,197,94,0.06)" }}>
+          <i className="fas fa-bolt text-green-400 mt-0.5"></i>
+          <p className="text-xs text-gray-400">Enter your M-Pesa number and amount below — your deposit is processed automatically.</p>
+        </div>
+      )}
+
+      {method === "visa" && (
+        <div className="rounded-2xl p-4 border border-cyan-500/20 flex items-start gap-2.5" style={{ background: "rgba(6,182,212,0.06)" }}>
+          <i className="fas fa-bolt text-cyan-400 mt-0.5"></i>
+          <p className="text-xs text-gray-400">Enter your card details below — your deposit is processed automatically.</p>
         </div>
       )}
 
       {method === "bank" && (
-        <div className="rounded-2xl p-4 border border-blue-500/20" style={{ background: "rgba(59,130,246,0.06)" }}>
-          <p className="text-blue-400 font-bold text-sm mb-2"><i className="fas fa-landmark mr-2"></i>Transfer To</p>
-          <div className="text-xs text-gray-400 space-y-1">
-            <p>Bank: <span className="text-white font-semibold">First National Bank</span></p>
-            <p>Account Name: <span className="text-white font-semibold">MarineAds Ltd</span></p>
-            <p>Account Number: <span className="text-white font-semibold">0123456789</span></p>
-            <p>SWIFT: <span className="text-white font-semibold">FNBKUS33</span></p>
-          </div>
+        <div className="rounded-2xl p-4 border border-blue-500/20 flex items-start gap-2.5" style={{ background: "rgba(59,130,246,0.06)" }}>
+          <i className="fas fa-bolt text-blue-400 mt-0.5"></i>
+          <p className="text-xs text-gray-400">Enter your bank account details below — your deposit is processed automatically.</p>
         </div>
       )}
 
@@ -195,7 +192,7 @@ const Deposit = () => {
         {/* MPESA FIELDS */}
         {method === "mpesa" && (
           <div>
-            <label className="text-xs font-semibold text-gray-400">M-Pesa Phone Used</label>
+            <label className="text-xs font-semibold text-gray-400">Your M-Pesa Phone Number</label>
             <input type="tel" placeholder="07XXXXXXXX"
               value={form.mpesaPhone} onChange={update("mpesaPhone")}
               className="w-full mt-1 px-4 py-3 rounded-xl text-sm text-white outline-none transition border border-white/10 focus:border-cyan-500 placeholder-gray-600"
@@ -248,7 +245,7 @@ const Deposit = () => {
         {method === "bank" && (
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-400">Your Account Holder Name</label>
+              <label className="text-xs font-semibold text-gray-400">Account Holder Name</label>
               <input type="text" placeholder="Jane Doe"
                 value={form.accountName} onChange={update("accountName")}
                 className="w-full mt-1 px-4 py-3 rounded-xl text-sm text-white outline-none transition border border-white/10 focus:border-cyan-500 placeholder-gray-600"
@@ -257,7 +254,7 @@ const Deposit = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-gray-400">Your Account Number</label>
+                <label className="text-xs font-semibold text-gray-400">Account Number</label>
                 <input type="text" placeholder="000123456"
                   value={form.accountNumber} onChange={update("accountNumber")}
                   className="w-full mt-1 px-4 py-3 rounded-xl text-sm text-white outline-none transition border border-white/10 focus:border-cyan-500 placeholder-gray-600"
@@ -265,7 +262,7 @@ const Deposit = () => {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-400">Your Bank Name</label>
+                <label className="text-xs font-semibold text-gray-400">Bank Name</label>
                 <input type="text" placeholder="e.g. Chase"
                   value={form.bankName} onChange={update("bankName")}
                   className="w-full mt-1 px-4 py-3 rounded-xl text-sm text-white outline-none transition border border-white/10 focus:border-cyan-500 placeholder-gray-600"
@@ -279,7 +276,7 @@ const Deposit = () => {
         <button onClick={submit} disabled={loading}
           className="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90 active:scale-95 disabled:opacity-50"
           style={{ background: "linear-gradient(135deg,#06b6d4,#3b82f6)" }}>
-          {loading ? "Submitting…" : <><i className="fas fa-paper-plane mr-2"></i>Submit Deposit Request</>}
+          {loading ? "Processing…" : <><i className="fas fa-bolt mr-2"></i>Deposit Now</>}
         </button>
       </div>
 
