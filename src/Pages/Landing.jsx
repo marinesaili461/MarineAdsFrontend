@@ -21,7 +21,7 @@ const Landing = () => (
           style={{ background: "linear-gradient(135deg,#06b6d4,#3b82f6)" }}>
           <i className="fas fa-rectangle-ad text-white text-sm"></i>
         </div>
-        <span className="font-extrabold text-lg">Marine<span style={{ color: "#22d3ee" }}>Ads</span></span>
+        <span className="font-extrabold text-lg">Marine<span style={{ color: "#22d3ee" }}>Panel</span></span>
       </div>
       <div className="flex gap-3">
         <Link to="/login" className="text-sm font-semibold text-gray-400 hover:text-white transition px-4 py-2">Login</Link>
