@@ -54,7 +54,7 @@ const Register = () => {
             <i className="fas fa-rectangle-ad text-white text-xl"></i>
           </div>
           <h1 className="text-2xl font-extrabold text-white">
-            Marine<span style={{ color: "#22d3ee" }}>Ads</span>
+            Marine<span style={{ color: "#22d3ee" }}>Panel</span>
           </h1>
           <p className="text-gray-400 text-sm mt-1">Create your free account</p>
         </div>
