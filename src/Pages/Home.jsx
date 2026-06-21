@@ -41,7 +41,7 @@ const Home = () => {
           style={{ background: "rgba(0,0,0,0.2)" }}>
           <p className="text-xs text-gray-400">Wallet Balance</p>
           <p className="text-3xl font-extrabold mt-1" style={{ color: "#22d3ee" }}>
-            {balance === null ? "…" : `KES ${Number(balance).toLocaleString()}`}
+            {balance === null ? "…" : `USD ${Number(balance).toLocaleString()}`}
           </p>
         </div>
       </div>
